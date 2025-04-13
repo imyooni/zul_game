@@ -1,0 +1,31 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #222; /* optional: to better see your .background */
+  }
+  
+  #game-container canvas {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 5px; /* match .background radius if needed */
+  }
+
+  .background {
+    width: 386px;
+    height: 750px;
+    background: #5e548e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid black;
+    border-radius: 5px;
+    position: absolute;
+    z-index: 50;
+  }
+  
