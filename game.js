@@ -23,7 +23,7 @@ const config = {
     update
   },
   scale: {
-    mode: Phaser.Scale.RESIZE,  // allows responsive resizing
+    mode: Phaser.Scale.FIT,  // allows responsive resizing
     autoCenter: Phaser.Scale.CENTER_BOTH
   }
 };
