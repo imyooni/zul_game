@@ -11,8 +11,8 @@ let npcMovementFlags = [];  // Track whether an NPC is currently moving
 
 const config = {
   type: Phaser.AUTO,
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: 384,
+  height: 736,
   parent: 'game-container',
   pixelArt: true,
   backgroundColor: 'transparent',
@@ -23,7 +23,7 @@ const config = {
     update
   },
   scale: {
-    mode: Phaser.Scale.FIT,  // allows responsive resizing
+    mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
   }
 };
