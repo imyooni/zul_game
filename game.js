@@ -49,6 +49,11 @@ function preload() {
  
 }
 
+let activeCars = {
+  car1: null,
+  car2: null
+};
+
 function create() {
   // ✅ Draw tilemap
   sprites.load_animations(this);
@@ -61,9 +66,18 @@ function create() {
 
   let roomBack = this.add.sprite( this.cameras.main.centerX,this.cameras.main.centerY,'room_background')
   roomBack.setDepth(-1)
-  //let roomTop = this.add.sprite( this.cameras.main.centerX,this.cameras.main.centerY,'room_top')
-  //roomTop.setDepth(100)
+  let roomTop = this.add.sprite( this.cameras.main.centerX,this.cameras.main.centerY,'room_top')
+  roomTop.setDepth(100)
 
+  let car1 = this.add.sprite(0, 2 * TILE_SIZE + TILE_SIZE / 2,'car1')
+  car1.x = -car1.width
+  car1.setDepth(2 * TILE_SIZE + TILE_SIZE / 2)
+
+  let car2 = this.add.sprite(0, 4 * TILE_SIZE + TILE_SIZE / 2,'car2')
+  car2.x = config.width+car2.width
+  car2.setDepth(4 * TILE_SIZE + TILE_SIZE / 2)
+
+  
   // ✅ Init player
   player = this.add.sprite(5 * TILE_SIZE + 16, 8 * TILE_SIZE + 16 / 2, 'player');
   player.setFrame(1);  // Use first frame for player
@@ -83,9 +97,11 @@ function create() {
     const playerTileX = Math.floor(player.x / TILE_SIZE);
     const playerTileY = Math.floor(player.y / TILE_SIZE);
 
+    console.log(tileX,tileY)
+
     easystar.findPath(playerTileX, playerTileY, tileX, tileY, (path) => {
-      if (path === null) {
-        console.log("No path found.");
+      if (path === null || tileY <= 7 || tileY >= 21) {
+       // console.log("No path found.");
       } else {
         activePath = true
         moveAlongPath(this, path, player);
@@ -94,15 +110,99 @@ function create() {
 
     easystar.calculate();
   });
- 
- // create_npcs(this);
+
+      const npc = this.add.sprite(0 * TILE_SIZE + TILE_SIZE / 2, 21 * TILE_SIZE + 16 / 2, 'npc1');
+      npc.direction = 2
+      npc.spriteKey = "npc1"
+      npc.setFrame(7);  // Use first frame for NPC
+      npc.setDepth(1);
+      npcs.push(npc);  // Add NPC to npcs array
+      npcMovementFlags.push(false);  // Add movement flag (false: not moving)
+      MoveNpcTo(this,0,4,21,3)
+
+
+   scheduleCarSpawn(this, 'car1');
+    scheduleCarSpawn(this, 'car2');
+  
+}
+
+function scheduleCarSpawn(scene, carType) {
+  const delay = Phaser.Math.Between(3000, 5000); // 3–10 seconds
+
+  scene.time.addEvent({
+    delay: delay,
+    callback: () => {
+      if (!activeCars[carType] && Math.random() < 0.35) {
+        spawnCar(scene, carType);
+      }
+      scheduleCarSpawn(scene, carType); // Loop again
+    }
+  });
+}
+function spawnCar(scene, carType) {
+  let y
+  let car;
+
+  if (carType === 'car1') {
+    y = 2 * TILE_SIZE + TILE_SIZE / 2;
+    car = scene.add.sprite(-64, y, 'car1');
+    car.x = -car.width
+  } else if (carType === 'car2') {
+    y = 3 * TILE_SIZE + TILE_SIZE / 2;
+    car = scene.add.sprite(config.width + 64, y, 'car2');
+    car.x = config.width+car.width
+  }
+  console.log(y/32)
+  car.setDepth(Math.floor(y/32))
+
+  activeCars[carType] = car;
+
+  const toX = carType === 'car1' ? config.width + car.width : -car.width;
+
+  scene.tweens.add({
+    targets: car,
+    x: toX,
+    duration: 4000,
+    ease: 'Linear',
+    onComplete: () => {
+      car.destroy();
+      activeCars[carType] = null;
+    }
+  });
+}
+
+
+
+
+  
+
+function MoveNpcTo(scene,npcIndex,x,y,finaldir = null){
+    const targetX = Math.floor(x);
+    const targetY = Math.floor(y);
+
+    const npc = npcs[npcIndex];
+    const currentX = Math.floor(npc.x / TILE_SIZE);
+    const currentY = Math.floor(npc.y / TILE_SIZE);
+
+    const tempPathfinder = new EasyStar.js();
+      tempPathfinder.setGrid(mapData);
+      tempPathfinder.setAcceptableTiles([0]);
+
+      tempPathfinder.findPath(currentX, currentY, targetX, targetY, (path) => {
+        if (path && path.length > 1) {
+          moveNPCAlongPath(scene, npc, path, npcIndex,finaldir);
+        }
+      });
+
+      tempPathfinder.calculate();
 }
 
 function set_map_areas(){
   let blockedTiles = [
+    [0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],[0,11],
     [7,0],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[7,7],[7,8],[7,10],[7,11],
-    [8,0],[8,2],[8,11],
-    [9,0],[9,11],
+    [8,0],[8,3],[8,4],[8,11],[8,7],
+    [9,0],[9,1],[9,3],[9,4],[9,11],
     [10,0],[10,11],
     [11,0],[11,11],
     [12,0],[12,11],
@@ -110,6 +210,10 @@ function set_map_areas(){
     [14,0],[14,11],
     [15,0],[15,11],
     [16,0],[16,11],
+    [17,0],[17,1],[17,2],[17,3],[17,5],[17,6],[17,7],[17,10],[17,11],
+    [18,0],[18,1],[18,2],[18,3],[18,5],[18,6],[18,7],[18,10],[18,11],
+    [19,0],[19,7],[19,10],[19,11],
+    [20,0],[20,1],[20,2],[20,3],[20,4],[20,5],[20,6],[20,7],[20,10],[20,11],
   ]
   for (let index = 0; index < blockedTiles.length; index++) {
     let id = blockedTiles[index]
@@ -117,69 +221,6 @@ function set_map_areas(){
   }
 } 
 
-function create_npcs(scene) {
-  // ✅ Spawn 5 NPCs at random walkable positions
-  for (let i = 0; i < 5; i++) {
-    const startX = Phaser.Math.Between(0, map_width - 1);
-    const startY = Phaser.Math.Between(0, map_height - 1);
-
-    // Make sure NPC spawns on a walkable tile
-    if (mapData[startY][startX] === 0) {
-      const npc = scene.add.sprite(startX * TILE_SIZE + TILE_SIZE / 2, startY * TILE_SIZE + 16 / 2, 'npc');
-      npc.setFrame(0);  // Use first frame for NPC
-      npc.setDepth(1);
-      npcs.push(npc);  // Add NPC to npcs array
-      npcMovementFlags.push(false);  // Add movement flag (false: not moving)
-    }
-  }
-
-  // Start NPCs wandering
-  npcs.forEach((npc, index) => {
- //  startNPCWander(scene, index);  // Pass the NPC index to handle each NPC independently
-  });
-}
-
-function startNPCWander(scene, npcIndex) {
-  // Recalculate path less frequently
-  scene.time.addEvent({
-    delay: Phaser.Math.Between(2000, 4000), // Randomize delay between NPC moves
-    loop: true,
-    callback: () => {
-      const npc = npcs[npcIndex];
-      const isMoving = npcMovementFlags[npcIndex];  // Check if NPC is moving
-
-      // Don't start a new path if NPC is already moving
-      if (isMoving) return;
-
-      // Mark NPC as moving
-      npcMovementFlags[npcIndex] = true;
-
-      const currentX = Math.floor(npc.x / TILE_SIZE);
-      const currentY = Math.floor(npc.y / TILE_SIZE);
-
-      let targetX, targetY;
-
-      let tries = 0;
-      do {
-        targetX = Phaser.Math.Between(0, map_width - 1);
-        targetY = Phaser.Math.Between(0, map_height - 1);
-        tries++;
-      } while ((mapData[targetY][targetX] !== 0 || (targetX === currentX && targetY === currentY)) && tries < 10);
-
-      const tempPathfinder = new EasyStar.js();
-      tempPathfinder.setGrid(mapData);
-      tempPathfinder.setAcceptableTiles([0]);
-
-      tempPathfinder.findPath(currentX, currentY, targetX, targetY, (path) => {
-        if (path && path.length > 1) {
-          moveNPCAlongPath(scene, npc, path, npcIndex);
-        }
-      });
-
-      tempPathfinder.calculate();
-    }
-  });
-}
 
 let currentTween = null;
 let player_direction = 0;
@@ -201,14 +242,17 @@ function moveAlongPath(scene, path, entity) {
       let dirs = [1,4,7,10]
       entity.setFrame(dirs[player_direction])
       activePath = false
-      console.log("Path finished");
+    //  console.log("Path finished");
       return;
     }
+
+   
 
     const nextTile = path[i];
     const nextX = nextTile.x * TILE_SIZE + TILE_SIZE / 2;
     const nextY = nextTile.y * TILE_SIZE + 16 / 2;
 
+    entity.setDepth(nextY)
     // Calculate movement direction
     const prevTile = path[i - 1];  // Previous tile
     const dx = nextTile.x - prevTile.x;
@@ -218,19 +262,19 @@ function moveAlongPath(scene, path, entity) {
     if (dy > 0) {
       // Moving down
       player_direction = 0
-      entity.anims.play('walk_down', true);
+      entity.anims.play('player_walk_down', true);
     } else if (dx < 0) {
       // Moving left
       player_direction = 1
-      entity.anims.play('walk_left', true);
+      entity.anims.play('player_walk_left', true);
     } else if (dx > 0) {
       // Moving right
       player_direction = 2
-      entity.anims.play('walk_right', true);
+      entity.anims.play('player_walk_right', true);
     } else if (dy < 0) {
       // Moving up
       player_direction = 3
-      entity.anims.play('walk_up', true);
+      entity.anims.play('player_walk_up', true);
     }
 
     currentTween = scene.tweens.add({
@@ -250,26 +294,54 @@ function moveAlongPath(scene, path, entity) {
 }
 
 
-
-function moveNPCAlongPath(scene, npc, path, npcIndex) {
+function moveNPCAlongPath(scene, npc, path, npcIndex, finaldir = null) {
   let i = 1;
 
   function moveNext() {
     if (i >= path.length) {
-      // Mark NPC as not moving once it reaches its destination
+      npc.anims.stop();
+      let dirs = [1,4,7,10]
+      if (finaldir != null) {
+        npc.direction = finaldir
+      }
+      npc.setFrame(dirs[npc.direction])
       npcMovementFlags[npcIndex] = false;
       return;
     }
 
+    // Calculate movement direction
+    const prevTile = path[i - 1];  // Previous tile
     const nextTile = path[i];
+    const dx = nextTile.x - prevTile.x;
+    const dy = nextTile.y - prevTile.y;
     const nextX = nextTile.x * TILE_SIZE + TILE_SIZE / 2;
     const nextY = nextTile.y * TILE_SIZE + 16 / 2;
+
+    npc.setDepth(nextY)
+    // Determine movement direction and play corresponding animation
+    if (dy > 0) {
+      // Moving down
+      npc.direction = 0
+      npc.anims.play(`${npc.spriteKey}_walk_down`, true);
+    } else if (dx < 0) {
+      // Moving left
+      npc.direction = 1
+      npc.anims.play(`${npc.spriteKey}_walk_left`, true);
+    } else if (dx > 0) {
+      // Moving right
+      npc.direction = 2
+      npc.anims.play(`${npc.spriteKey}_walk_right`, true);
+    } else if (dy < 0) {
+      // Moving up
+      npc.direction = 3
+      npc.anims.play(`${npc.spriteKey}_walk_up`, true);
+    }
 
     scene.tweens.add({
       targets: npc,
       x: nextX,
       y: nextY,
-      duration: 200,
+      duration: 300,
       ease: 'Linear',
       onComplete: () => {
         i++;
@@ -285,6 +357,8 @@ function update() {
   if (easystar) {
     easystar.calculate(); // ✅ Required for pathfinding to run
   }
+
+
 }
 
 function drawTilemap(scene, mapData) {
@@ -304,12 +378,9 @@ function drawTilemap(scene, mapData) {
   }
 }
 
-
-
-
 function drawDebugGrid(scene) {
   const graphics = scene.add.graphics();
-  graphics.lineStyle(1, 0x00ff00, 0.3);
+  graphics.lineStyle(1, 0xffffff, 0.25);
 
   for (let x = 0; x <= map_width; x++) {
     graphics.moveTo(x * TILE_SIZE, 0);

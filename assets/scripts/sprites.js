@@ -3,39 +3,33 @@ export function load_sprites(scene) {
  scene.load.image('room_top', 'assets/sprites/room_top.png');
 
   scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
-  scene.load.spritesheet('npc', 'assets/sprites/npc.png', {frameWidth: 32, frameHeight: 48});
+  scene.load.spritesheet('npc1', 'assets/sprites/npc1.png', {frameWidth: 32, frameHeight: 48});
   scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
   
-  
+  scene.load.spritesheet('car1', 'assets/sprites/car1.png', {frameWidth: 154, frameHeight: 72});
+  scene.load.spritesheet('car2', 'assets/sprites/car2.png', {frameWidth: 228, frameHeight: 124});
 }
 
 export function load_animations(scene){
- scene.anims.create({
-    key: 'walk_down',
-    frames: scene.anims.generateFrameNumbers('player', { frames: [2, 1, 0, 1] }), // down
-    frameRate: 8,
-    repeat: -1
-  });
+  createDirectionalAnims(scene, 'player');
+  createDirectionalAnims(scene, 'npc1');
+}
 
-  scene.anims.create({
-    key: 'walk_left',
-    frames: scene.anims.generateFrameNumbers('player', { frames: [5, 4, 3, 4] }), // left
-    frameRate: 8,
-    repeat: -1
-  });
+export function createDirectionalAnims(scene, spriteKey, animKeyPrefix = spriteKey) {
+  const directions = {
+    down: [2, 1, 0, 1],
+    left: [5, 4, 3, 4],
+    right: [8, 7, 6, 7],
+    up: [11, 10, 9, 10]
+  };
 
-  scene.anims.create({
-    key: 'walk_right',
-    frames: scene.anims.generateFrameNumbers('player', { frames: [8, 7, 6, 7] }), // right
-    frameRate: 8,
-    repeat: -1
-  });
-  
-  scene.anims.create({
-    key: 'walk_up',
-    frames: scene.anims.generateFrameNumbers('player', { frames: [11, 10, 9, 10] }), // up
-    frameRate: 8,
-    repeat: -1
-  });
-
+  for (const [dir, frames] of Object.entries(directions)) {
+    console.log(`${animKeyPrefix}_walk_${dir}`)
+    scene.anims.create({
+      key: `${animKeyPrefix}_walk_${dir}`,
+      frames: scene.anims.generateFrameNumbers(spriteKey, { frames }),
+      frameRate: 8,
+      repeat: -1
+    });
+  }
 }
