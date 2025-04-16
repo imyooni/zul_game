@@ -1,20 +1,10 @@
 export function load_sprites(scene) {
  scene.load.image('room_background', 'assets/sprites/room_background.png');
+ scene.load.image('room_top', 'assets/sprites/room_top.png');
 
- scene.load.spritesheet('player', 'assets/sprites/player.png', {
-    frameWidth: 32,
-    frameHeight: 48
-  });
-
-  scene.load.spritesheet('npc', 'assets/sprites/npc.png', {
-    frameWidth: 32,
-    frameHeight: 48
-  });
-
-  scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {
-    frameWidth: 32,
-    frameHeight: 32
-  });
+  scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
+  scene.load.spritesheet('npc', 'assets/sprites/npc.png', {frameWidth: 32, frameHeight: 48});
+  scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
   
   
 }

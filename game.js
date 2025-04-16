@@ -14,7 +14,7 @@ const config = {
   width: 384,
   height: 736,
   parent: 'game-container',
-  pixelArt: true,
+  pixelArt: false,
   backgroundColor: 'transparent',
   transparent: true,
   scene: {
@@ -28,14 +28,17 @@ const config = {
   }
 };
 
+
+
 const game = new Phaser.Game(config);
 
 // ✅ Generate map data (0 = walkable, 1 = blocked)
-const mapData = [];
+let mapData = [];
 for (let y = 0; y < map_height; y++) {
   const row = [];
   for (let x = 0; x < map_width; x++) {
-    row.push(Math.random() < 0.2 ? 1 : 0); // 20% blocked
+   // row.push(Math.random() < 0.2 ? 1 : 0); // 20% blocked
+    row.push(0)
   }
   mapData.push(row);
 }
@@ -44,24 +47,26 @@ function preload() {
  
   sprites.load_sprites(this);
  
-
-  this.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {
-    frameWidth: 32,
-    frameHeight: 32
-  });
-  this.load.spritesheet('player', 'assets/sprites/player.png', { frameWidth: 32, frameHeight: 48 });  // Assuming a player sprite with size 32x48
-  this.load.spritesheet('npc', 'assets/sprites/npc.png', { frameWidth: 32, frameHeight: 48 });  // Assuming an NPC sprite with size 32x48
 }
 
 function create() {
   // ✅ Draw tilemap
   sprites.load_animations(this);
-  drawTilemap(this, mapData);
-  drawDebugGrid(this);
+  
+  set_map_areas()
+  //drawTilemap(this, mapData);
+  //drawDebugGrid(this);
+
+
+
+  let roomBack = this.add.sprite( this.cameras.main.centerX,this.cameras.main.centerY,'room_background')
+  roomBack.setDepth(-1)
+  //let roomTop = this.add.sprite( this.cameras.main.centerX,this.cameras.main.centerY,'room_top')
+  //roomTop.setDepth(100)
 
   // ✅ Init player
-  player = this.add.sprite(5 * TILE_SIZE + 16, 5 * TILE_SIZE + 16 / 2, 'player');
-  player.setFrame(0);  // Use first frame for player
+  player = this.add.sprite(5 * TILE_SIZE + 16, 8 * TILE_SIZE + 16 / 2, 'player');
+  player.setFrame(1);  // Use first frame for player
   player.setDepth(1);
 
   // ✅ Init EasyStar
@@ -89,9 +94,28 @@ function create() {
 
     easystar.calculate();
   });
-
-  create_npcs(this);
+ 
+ // create_npcs(this);
 }
+
+function set_map_areas(){
+  let blockedTiles = [
+    [7,0],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[7,7],[7,8],[7,10],[7,11],
+    [8,0],[8,2],[8,11],
+    [9,0],[9,11],
+    [10,0],[10,11],
+    [11,0],[11,11],
+    [12,0],[12,11],
+    [13,0],[13,11],
+    [14,0],[14,11],
+    [15,0],[15,11],
+    [16,0],[16,11],
+  ]
+  for (let index = 0; index < blockedTiles.length; index++) {
+    let id = blockedTiles[index]
+    mapData[id[0]][id[1]] = 1;
+  }
+} 
 
 function create_npcs(scene) {
   // ✅ Spawn 5 NPCs at random walkable positions
@@ -279,6 +303,9 @@ function drawTilemap(scene, mapData) {
     }
   }
 }
+
+
+
 
 function drawDebugGrid(scene) {
   const graphics = scene.add.graphics();
