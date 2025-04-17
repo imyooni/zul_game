@@ -1,4 +1,5 @@
 import * as sprites from './assets/scripts/sprites.js';
+import * as gameSystem from './assets/scripts/gameSystem.js';
 
 const TILE_SIZE = 32;
 const map_width = 12;
@@ -9,12 +10,13 @@ let player;
 let npcs = [];
 let npcMovementFlags = [];  // Track whether an NPC is currently moving
 
+
 const config = {
   type: Phaser.AUTO,
   width: 384,
   height: 736,
   parent: 'game-container',
-  pixelArt: false,
+  pixelArt: true,
   backgroundColor: 'transparent',
   transparent: true,
   scene: {
@@ -54,6 +56,100 @@ let activeCars = {
   car2: null
 };
 
+// ██████████████████ //
+//     UPDATE         //
+// ██████████████████ //
+function update(time, delta) {
+  if (easystar) {
+    easystar.calculate(); // ✅ Pathfinding
+  }
+
+  // 🕓 Update time
+  if (!this.isTimePaused) {
+    this.timeElapsed += (delta / 1000) * this.timeSpeed;
+  }
+  const progress = (this.timeElapsed % this.dayLength) / this.dayLength;
+
+  // 🗓 Define time phases
+  const phases = [
+    { name: "night",      start: 0.875, color: this.timeColors.night },
+    { name: "lateNight",  start: 0.0,   color: this.timeColors.lateNight },
+    { name: "morning",    start: 0.375, color: this.timeColors.morning },
+    { name: "evening",    start: 0.666, color: this.timeColors.evening },
+  ];
+
+  // ➕ Append for wraparound interpolation
+  phases.push({ ...phases[0], start: 1.0 });
+
+  let fromPhase = null;
+  let toPhase = null;
+  let lerp = 0;
+
+  for (let i = 0; i < phases.length - 1; i++) {
+    const curr = phases[i];
+    const next = phases[i + 1];
+
+    const inRange = progress >= curr.start && progress < next.start;
+    const wrapped = curr.start > next.start && (progress >= curr.start || progress < next.start);
+
+    if (inRange || wrapped) {
+      fromPhase = curr;
+      toPhase = next;
+
+      const start = curr.start;
+      const end = next.start < start ? next.start + 1 : next.start;
+      const adjustedProgress = progress < start ? progress + 1 : progress;
+
+      const rawLerp = (adjustedProgress - start) / (end - start);
+      lerp = Phaser.Math.Easing.Sine.InOut(rawLerp); // 🎯 Smooth easing
+      break;
+    }
+  }
+
+  // 🌈 Smooth color interpolation
+  const r = Phaser.Math.Linear(fromPhase.color.red,   toPhase.color.red,   lerp);
+  const g = Phaser.Math.Linear(fromPhase.color.green, toPhase.color.green, lerp);
+  const b = Phaser.Math.Linear(fromPhase.color.blue,  toPhase.color.blue,  lerp);
+  const tintColor = Phaser.Display.Color.GetColor(r, g, b);
+  this.dayNightOverlay.fillColor = tintColor;
+
+  // 🔅 Smooth alpha transition
+  const alphaMap = {
+    night: 0.15,
+    lateNight: 0.15,
+    morning: 0.15,
+    evening: 0.15,
+  };
+  const fromAlpha = alphaMap[fromPhase.name] || 0.1;
+  const toAlpha   = alphaMap[toPhase.name]   || 0.1;
+  const smoothAlpha = Phaser.Math.Linear(fromAlpha, toAlpha, lerp);
+  this.dayNightOverlay.setAlpha(smoothAlpha);
+
+  // 🕰 Clock animation on phase change
+  const currentPhase = fromPhase.name;
+  if (this.lastPhase !== currentPhase) {
+    this.lastPhase = currentPhase;
+
+    const phaseToFrame = {
+      night: 0,
+      lateNight: 1,
+      morning: 2,
+      evening: 3,
+    };
+
+    this.clock.setFrame(phaseToFrame[currentPhase]);
+    this.clock.y = -this.clock.height;
+
+    this.tweens.add({
+      targets: this.clock,
+      y: 25,
+      duration: 400,
+      ease: 'Bounce.Out',
+    });
+  }
+}
+
+
 function create() {
   // ✅ Draw tilemap
   sprites.load_animations(this);
@@ -62,12 +158,59 @@ function create() {
   //drawTilemap(this, mapData);
   //drawDebugGrid(this);
 
+this.dayNightOverlay = this.add.rectangle(
+  0, 0,
+  this.scale.width, this.scale.height,
+  0x000000
+)
+.setOrigin(0)
+.setScrollFactor(0)
+.setDepth(200)
+.setAlpha(0); 
 
+this.timeColors = {
+  night: new Phaser.Display.Color(0,0,139), 
+  lateNight: new Phaser.Display.Color(75,0,130),        
+  morning: new Phaser.Display.Color(255,250,205),        
+  evening: new Phaser.Display.Color(244,164,96)    
+};
+
+this.timeElapsed = 0;
+this.dayLength = 1440;
+
+this.timeSpeed = 1;         // 1 = real time; 2 = twice as fast
+this.isTimePaused = false;  // Toggle this to pause time
+
+this.skipToTime = function(hour24) {
+  const normalized = hour24 / 24;
+  this.timeElapsed = normalized * this.dayLength;
+};
+
+this.getCurrentTime = function() {
+  const dayProgress = (this.timeElapsed % this.dayLength) / this.dayLength;
+  const hour = Math.floor(dayProgress * 24);
+  const minute = Math.floor((dayProgress * 24 - hour) * 60);
+  return { hour, minute };
+};
+
+this.input.keyboard.on('keydown-T', () => {
+  const time = this.getCurrentTime();
+  console.log(`🕒 ${time.hour}:${String(time.minute).padStart(2, "0")}`);
+});
+
+
+this.skipToTime(10); 
 
   let roomBack = this.add.sprite( this.cameras.main.centerX,this.cameras.main.centerY,'room_background')
   roomBack.setDepth(-1)
   let roomTop = this.add.sprite( this.cameras.main.centerX,this.cameras.main.centerY,'room_top')
   roomTop.setDepth(100)
+
+  gameSystem.createEnergyBar(this)
+  
+
+  this.clock = this.add.sprite(Math.floor(config.width/2),25,'dayNight')
+  this.clock.setDepth(1000)
 
   this.newPos = this.add.sprite(0,0,'newPos')
   this.newPos.setDepth(200)
@@ -108,6 +251,7 @@ function create() {
         return
        // console.log("No path found.");
       } else {
+        gameSystem.updateEnergy(this,(this.energy[0]-5))
         this.newPos.x = Math.floor(tileX*32+16), this.newPos.y = Math.floor(tileY*32+16);
         this.newPos.setVisible(true)
         activePath = true
@@ -131,6 +275,8 @@ function create() {
 
     scheduleCarSpawn(this, 'car1');
     scheduleCarSpawn(this, 'car2');
+
+    
   
 }
 
@@ -385,13 +531,6 @@ function moveNPCAlongPath(scene, npc, path, npcIndex, finaldir = null) {
   moveNext();
 }
 
-function update() {
-  if (easystar) {
-    easystar.calculate(); // ✅ Required for pathfinding to run
-  }
-
-
-}
 
 function drawTilemap(scene, mapData) {
   for (let y = 0; y < map_height; y++) {

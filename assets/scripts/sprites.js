@@ -2,10 +2,14 @@ export function load_sprites(scene) {
  scene.load.image('room_background', 'assets/sprites/room_background.png');
  scene.load.image('room_top', 'assets/sprites/room_top.png');
 
+ scene.load.image('energyBar', 'assets/sprites/energyBar.png');
+ scene.load.image('energyFill', 'assets/sprites/energyFill.png');
+
   scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
   scene.load.spritesheet('npc1', 'assets/sprites/npc1.png', {frameWidth: 32, frameHeight: 48});
   scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
   scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
+  scene.load.spritesheet('dayNight', 'assets/sprites/dayNight.png', {frameWidth: 142,frameHeight: 50 });
   
   for (let index = 0; index < 5; index++) {
     scene.load.image(`car${index}`, `assets/sprites/car${index}.png`);
