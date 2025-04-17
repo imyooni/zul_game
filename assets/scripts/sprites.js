@@ -5,9 +5,13 @@ export function load_sprites(scene) {
   scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
   scene.load.spritesheet('npc1', 'assets/sprites/npc1.png', {frameWidth: 32, frameHeight: 48});
   scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
+  scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
   
-  scene.load.spritesheet('car1', 'assets/sprites/car1.png', {frameWidth: 154, frameHeight: 72});
-  scene.load.spritesheet('car2', 'assets/sprites/car2.png', {frameWidth: 228, frameHeight: 124});
+  for (let index = 0; index < 5; index++) {
+    scene.load.image(`car${index}`, `assets/sprites/car${index}.png`);
+  }
+
+
 }
 
 export function load_animations(scene){
@@ -22,6 +26,9 @@ export function createDirectionalAnims(scene, spriteKey, animKeyPrefix = spriteK
     right: [8, 7, 6, 7],
     up: [11, 10, 9, 10]
   };
+
+
+
 
   for (const [dir, frames] of Object.entries(directions)) {
     console.log(`${animKeyPrefix}_walk_${dir}`)
