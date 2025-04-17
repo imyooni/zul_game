@@ -1,4 +1,5 @@
 import * as sprites from './assets/scripts/sprites.js';
+import * as audio from './assets/scripts/audio.js';
 import * as gameSystem from './assets/scripts/gameSystem.js';
 
 const TILE_SIZE = 32;
@@ -46,9 +47,8 @@ for (let y = 0; y < map_height; y++) {
 }
 
 function preload() {
- 
+  audio.load_audio(this)
   sprites.load_sprites(this);
- 
 }
 
 let activeCars = {
@@ -193,13 +193,16 @@ this.getCurrentTime = function() {
   return { hour, minute };
 };
 
+this.bgm = this.sound.add('bgm001', { loop: true, volume: 0.35 });
+this.bgm.play();
+
 this.input.keyboard.on('keydown-T', () => {
   const time = this.getCurrentTime();
   console.log(`🕒 ${time.hour}:${String(time.minute).padStart(2, "0")}`);
 });
 
 
-this.skipToTime(10); 
+  this.skipToTime(10); 
 
   let roomBack = this.add.sprite( this.cameras.main.centerX,this.cameras.main.centerY,'room_background')
   roomBack.setDepth(-1)
@@ -404,6 +407,8 @@ function moveAlongPath(scene, path, entity) {
       scene.newPos.setVisible(false)
       return;
     }
+    let step = scene.sound.add('playerStep', { loop: false, volume: 0.35 });
+    step.play();
     const nextTile = path[i];
     const nextX = nextTile.x * TILE_SIZE + TILE_SIZE / 2;
     const nextY = nextTile.y * TILE_SIZE + 16 / 2;

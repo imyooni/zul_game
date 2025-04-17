@@ -2,8 +2,10 @@ export function load_sprites(scene) {
  scene.load.image('room_background', 'assets/sprites/room_background.png');
  scene.load.image('room_top', 'assets/sprites/room_top.png');
 
+ scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
  scene.load.image('energyBar', 'assets/sprites/energyBar.png');
- scene.load.image('energyFill', 'assets/sprites/energyFill.png');
+ //scene.load.image('energyFill', 'assets/sprites/energyFill.png');
+ scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
 
   scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
   scene.load.spritesheet('npc1', 'assets/sprites/npc1.png', {frameWidth: 32, frameHeight: 48});

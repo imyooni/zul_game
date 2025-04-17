@@ -19,6 +19,10 @@ html, body {
   image-rendering: pixelated;
 }
 
+@font-face {
+  font-family: 'DefaultFont';
+  src: url('./DefaultFont.ttf') format('truetype');
+}
 
 .background {
   position: absolute;
