@@ -4,7 +4,7 @@ export function load_sprites(scene) {
 
  scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
  scene.load.image('energyBar', 'assets/sprites/energyBar.png');
- //scene.load.image('energyFill', 'assets/sprites/energyFill.png');
+ scene.load.image('coffeeTable', 'assets/sprites/coffeeTable.png');
  scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
 
   scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
@@ -33,11 +33,8 @@ export function createDirectionalAnims(scene, spriteKey, animKeyPrefix = spriteK
     up: [11, 10, 9, 10]
   };
 
-
-
-
   for (const [dir, frames] of Object.entries(directions)) {
-    console.log(`${animKeyPrefix}_walk_${dir}`)
+   // console.log(`${animKeyPrefix}_walk_${dir}`)
     scene.anims.create({
       key: `${animKeyPrefix}_walk_${dir}`,
       frames: scene.anims.generateFrameNumbers(spriteKey, { frames }),
