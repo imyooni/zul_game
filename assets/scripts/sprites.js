@@ -1,28 +1,53 @@
-export function load_sprites(scene) {
- scene.load.image('room_background', 'assets/sprites/room_background.png');
- scene.load.image('room_top', 'assets/sprites/room_top.png');
+export function loadIntroSprites(scene){
+  scene.load.image('logo', 'assets/sprites/logo.png');
+}
 
- scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
- scene.load.image('energyBar', 'assets/sprites/energyBar.png');
- scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
+export function loadLangSprites(scene){
+  scene.load.spritesheet('languages', 'assets/sprites/languages.png', {frameWidth: 250,frameHeight: 50 });
+}
 
-  scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
-  scene.load.spritesheet('npc1', 'assets/sprites/npc1.png', {frameWidth: 32, frameHeight: 48});
-  scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
-  scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
+export function loadGameSprites(scene){
+  // single
+  scene.load.image('room_background', 'assets/sprites/room_background.png');
+  scene.load.image('room_top', 'assets/sprites/room_top.png');
+  scene.load.image('commandBorder', 'assets/sprites/commandBorder.png');
+  // sheets
   scene.load.spritesheet('dayNight', 'assets/sprites/dayNight.png', {frameWidth: 142,frameHeight: 50 });
   scene.load.spritesheet('coffeeTable', 'assets/sprites/coffeeTable.png', {frameWidth: 34,frameHeight: 64 });
   scene.load.spritesheet('coffeeIcon', 'assets/sprites/coffeeIcon.png', {frameWidth: 40,frameHeight: 40 });
-  
+
+  scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
+  scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
+ 
+  // special npcs & player
+  scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
+  scene.load.spritesheet('zul', 'assets/sprites/zul.png', {frameWidth: 32, frameHeight: 48});
+  // npcs
+  scene.load.spritesheet('npc1', 'assets/sprites/npc1.png', {frameWidth: 32, frameHeight: 48});
+
   for (let index = 0; index < 5; index++) {
     scene.load.image(`car${index}`, `assets/sprites/car${index}.png`);
   }
+}
+
+export function load_sprites(scene) {
+
+
+ 
+  scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
+  scene.load.image('energyBar', 'assets/sprites/energyBar.png');
+  scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
+  
+
+
+
 
 
 }
 
 export function load_animations(scene){
   createDirectionalAnims(scene, 'player');
+  createDirectionalAnims(scene, 'zul');
   createDirectionalAnims(scene, 'npc1');
 }
 

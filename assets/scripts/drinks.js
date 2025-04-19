@@ -1,5 +1,6 @@
 import * as gameSystem  from './gameSystem.js';
 import * as audio from './audio.js';
+import * as player from './player.js';
 
 
 export function setDrinksData(scene){
@@ -19,6 +20,7 @@ export function createDrinkTable(scene){
       // █ on click table █ //
       scene.coffeeTable.on('pointerdown', (pointer) => {
           if (pointer.leftButtonDown()) {
+            if (scene.gameActive === false) return
             if (scene.activePath || scene.coffeeIcon.alpha != 1) return
             let tileX = Math.floor(scene.player.x / scene.TILE_SIZE)
             let tileY = Math.floor((scene.player.y + scene.player.height / 2) / scene.TILE_SIZE)-1
@@ -26,7 +28,7 @@ export function createDrinkTable(scene){
             if (inRange && !scene.coffeeIcon.onCoolDown) {
               let drink = scene.coffeeIcon.drinkData
               let newEnergy = scene.energy[0]+drink[1]
-              gameSystem.changePlayerDir(scene,scene.player,scene.coffeeTable)
+              player.changePlayerDir(scene,scene.player,scene.coffeeTable)
               audio.playSound('coffee')
               gameSystem.updateEnergy(scene,newEnergy)
               generateNewDrink(scene)
@@ -36,7 +38,8 @@ export function createDrinkTable(scene){
           }
         })
       scene.coffeeIcon = scene.add.sprite(0,0,'coffeeIcon')
-      .setDepth(100) 
+      .setDepth(100)
+      .setVisible(false)
       scene.coffeeIcon.onCoolDown = false
       scene.coffeeIcon.drinkData = scene.drinks.water
       scene.coffeeIcon.type = "drink"
@@ -70,7 +73,9 @@ export function generateNewDrink(scene){
   }
 
  export function setDrinkCoolDown(scene,time){
-    gameSystem.playerJump(scene)
+  scene.time.delayedCall(100, () => {
+    player.playerJump(scene)
+  });   
     scene.coffeeTable.setFrame(0)
     scene.coffeeIcon.onCoolDown = true
     gameSystem.startCooldown(scene,scene.coffeeIcon,time*1000);
