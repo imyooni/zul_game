@@ -1,4 +1,7 @@
 
+import * as audio from '/assets/scripts/audio.js';
+import * as drinks from '/assets/scripts/drinks.js';
+
 export function set_tilemap(scene) {
   scene.TILE_SIZE = 32;
   scene.map_width = 12;
@@ -28,11 +31,18 @@ export function set_tilemap(scene) {
     [19, 0], [19, 7], [19, 10], [19, 11],
     [20, 0], [20, 1], [20, 2], [20, 3], [20, 4], [20, 5], [20, 6], [20, 7], [20, 10], [20, 11],
   ]
+  let coffeeTiles = [
+   [9,10],[10,9],[11,10]
+  ]
+  for (let index = 0; index < coffeeTiles.length; index++) {
+    let id = coffeeTiles[index]
+    scene.mapData[id[0]][id[1]] = 4;
+  }
+
   let playerlockedTiles = [
     [11, 1], [11, 2], [11, 3], [11, 4], [11, 5], [11, 6],
     [7, 9],
     [13, 1], [13, 2], [13, 3], [13, 4], [13, 5], [13, 6],
-    [21, 8], [21, 9],
   ]
   for (let index = 0; index < playerlockedTiles.length; index++) {
     let id = playerlockedTiles[index]
@@ -58,17 +68,18 @@ export function createRoom(scene) {
     .setInteractive()
   scene.roomBack.on('pointerdown', (pointer) => {
     if (scene.activePath) return;
+    if (scene.player.pauseMovement) return
     const tileX = Math.floor(pointer.worldX / scene.TILE_SIZE);
     const tileY = Math.floor(pointer.worldY / scene.TILE_SIZE);
     const playerTileX = Math.floor(scene.player.x / scene.TILE_SIZE);
     const playerTileY = Math.floor(scene.player.y / scene.TILE_SIZE);
 
-    //console.log(`y:${tileY} x:${tileX}`)
+    console.log(`y:${tileY} x:${tileX}`)
     
 
     scene.easystar = new EasyStar.js();
     scene.easystar.setGrid(scene.mapData);
-    scene.easystar.setAcceptableTiles([0, 3]); // 0 = walkable
+    scene.easystar.setAcceptableTiles([0,3,4]);
     scene.easystar.findPath(playerTileX, playerTileY, tileX, tileY, (path) => {
       if (path === null || path.length <= 1) {
         return
@@ -87,34 +98,51 @@ export function createRoom(scene) {
 
   scene.roomTop = scene.add.sprite(scene.cameras.main.centerX, scene.cameras.main.centerY, 'room_top')
     .setDepth(100)
-
-  scene.coffeeTable = scene.add.sprite(10 * scene.TILE_SIZE + scene.TILE_SIZE / 2, 10 * scene.TILE_SIZE + scene.TILE_SIZE / 2, 'coffeeTable')
-    .setDepth(10)
-    .setInteractive()
-    scene.coffeeTable.on('pointerdown', (pointer) => {
-      if (pointer.leftButtonDown()) {
-        let table = Math.floor(scene.coffeeTable.x/32)+Math.floor(scene.coffeeTable.y/32)
-        let playerPos = Math.floor(scene.player.x/32)+Math.floor(scene.player.y/32)
-        if (Math.abs(table-playerPos) <= 1) {
-          let coffee = scene.sound.add('coffee', { loop: false, volume: 0.35 });
-          coffee.play();
-          updateEnergy(scene, scene.energy[1])
-        }
-      }
-    })
 }
+
 
 export function createPlayer(scene) {
   scene.player = scene.add.sprite(5 * scene.TILE_SIZE + 16, 8 * scene.TILE_SIZE + 16 / 2, 'player')
     .setFrame(1)
     .setDepth(1)
+  scene.player.pauseMovement = false  
   scene.newPos = scene.add.sprite(0, 0, 'newPos')
   scene.newPos.setDepth(200)
   scene.newPos.setVisible(false)
 }
 
+export function playerJump(scene){
+  scene.player.pauseMovement = true
+  scene.tweens.add({
+    targets: scene.player,
+    y: scene.player.y - 20,
+    duration: 150,
+    ease: 'Quad.easeOut',
+    yoyo: true,            
+    delay: 100,
+    onComplete: () => {
+      scene.player.pauseMovement = false
+    }
+  });  
+} 
 
-function moveAlongPath(scene, path, entity) {
+export function changePlayerDir(scene,player,target){
+  let playerX = Math.floor(player.x / scene.TILE_SIZE)
+  let playerY = Math.floor(player.y / scene.TILE_SIZE)
+  let targetX = Math.floor(target.x / scene.TILE_SIZE)
+  let targetY = Math.floor(target.y / scene.TILE_SIZE)
+  if (playerY === targetY && playerX < targetX) {
+    player.setFrame(7)
+  } else if (playerY === targetY && playerX > targetX) {
+    player.setFrame(4)
+  } else if (playerY < targetY) {
+    player.setFrame(1)
+  } else if (playerY > targetY) {
+    player.setFrame(10)
+  }
+} 
+
+export function moveAlongPath(scene, path, entity) {
   let currentTween = null;
   let player_direction = 0;
   if (path.length <= 1) {
@@ -136,8 +164,7 @@ function moveAlongPath(scene, path, entity) {
       scene.newPos.setVisible(false)
       return;
     }
-    let step = scene.sound.add('playerStep', { loop: false, volume: 0.35 });
-    step.play();
+    audio.playSound('playerStep')
     const nextTile = path[i];
     const nextX = nextTile.x * scene.TILE_SIZE + scene.TILE_SIZE / 2;
     const nextY = nextTile.y * scene.TILE_SIZE + 16 / 2;
@@ -272,7 +299,6 @@ export function skipToTime(scene, hour24) {
   scene.timeElapsed = normalized * scene.dayLength;
 };
 
-
 export function updateEnergy(scene, newEnergy) {
   const fullHeight = scene.energyFill.height;
   const current = scene.energy[0];
@@ -302,7 +328,7 @@ export function updateEnergy(scene, newEnergy) {
   });
 }
 
-function getEnergyColor(current, max) {
+export function getEnergyColor(current, max) {
   const percent = (current / max) * 100;
   if (percent > 50) return 0;
   else if (percent > 34) return 1;
@@ -336,10 +362,22 @@ export function createEnergyBar(scene) {
     fill: '#ffffff',
     padding: { x: 0, y: 0 }
   }).setDepth(1002).setVisible(false);
+  scene.energyText.setOrigin(0.5, 0.5); 
+
   scene.energyBorder = scene.add.sprite(0, 0, 'energyBorder')
     .setDepth(1000)
     .setVisible(false);
   scene.energyBar.setInteractive();
+
+  scene.energyBorder.setPosition(
+    scene.energyBar.x,
+    scene.energyBar.y - scene.energyBar.height - 20
+  );
+  scene.energyText.setPosition(
+    scene.energyBorder.x,
+    scene.energyBorder.y
+  );
+
   scene.energyBar.on('pointerover', () => {
     const colors = ['#00ff00', '#ffff00', '#ffa500', '#ff0000']
     const [current, max] = scene.energy;
@@ -349,21 +387,101 @@ export function createEnergyBar(scene) {
     scene.energyBorder.setVisible(true)
     scene.energyText.setVisible(true);
   });
-  scene.energyBar.on('pointermove', () => {
-    scene.energyText.setPosition(
-      scene.energyBar.x - scene.energyText.width / 2,
-      scene.energyBar.y - scene.energyBar.height - 31
-    );
-    scene.energyBorder.setPosition(
-      scene.energyBar.x,
-      scene.energyBar.y - scene.energyBar.height - 20
-    );
 
-  });
   scene.energyBar.on('pointerout', () => {
     scene.energyBorder.setVisible(false);
     scene.energyText.setVisible(false);
   });
 }
 
+export function flashFill(sprite, color = 0xffff00, flashCount = 2, flashDuration = 100) {
+  const scene = sprite.scene;
+  let count = 0;
+  const flash = () => {
+    sprite.setTintFill(color);
+    scene.tweens.add({
+      targets: sprite,
+      alpha: 0.4,         // fade to 40% alpha
+      duration: flashDuration / 2,
+      yoyo: true,         // fade back to 1
+      ease: 'Sine.easeInOut',
+      onYoyo: () => {
+        sprite.clearTint(); // clear tint mid-way (as alpha returns)
+      },
+      onComplete: () => {
+        count++;
+        if (count < flashCount) {
+          scene.time.delayedCall(flashDuration / 2, flash);
+        }
+      }
+    });
+  };
+
+  flash();
+}
+
+
+
+export function startCooldown(scene, sprite, duration = 2000) {
+  let elapsed = 0;
+  const interval = 16;
+
+  // Create and link a new overlay to the sprite
+  const overlay = scene.add.graphics();
+  overlay.setDepth(sprite.depth+1)
+  sprite.cooldownOverlay = overlay;
+
+  sprite.alpha = 0.5;
+
+  const event = scene.time.addEvent({
+    delay: interval,
+    repeat: (duration / interval) - 1,
+    callback: () => {
+      elapsed += interval;
+      const progress = Phaser.Math.Clamp(elapsed / duration, 0, 1);
+      const angle = Phaser.Math.Linear(360, 0, progress);
+
+      overlay.clear();
+      overlay.lineStyle(); 
+      overlay.fillStyle(); 
+      overlay.fillStyle(0x7FFFD4, 0.35);           // Fill color
+      overlay.lineStyle(1, 0x2F4F4F, 1);           // Stroke color
+      overlay.slice(
+        sprite.x,
+        sprite.y,
+        sprite.width / 2,
+        Phaser.Math.DegToRad(-90),
+        Phaser.Math.DegToRad(angle - 90),
+        false
+      );
+      overlay.fillPath();
+      overlay.strokePath();
+    },
+    callbackScope: scene,
+  });
+
+  // After cooldown ends
+  scene.time.delayedCall(duration + 50, () => {
+    if (sprite.cooldownOverlay) {
+      sprite.cooldownOverlay.destroy();   // 🔥 Properly delete the overlay
+      sprite.cooldownOverlay = null;
+    }
+    console.log(sprite.type)
+    if (sprite.type !== null) {
+     callSpecialFunction(scene,sprite.type)
+    } 
+    sprite.alpha = 1;
+    flashFill(sprite, 0xffffff, 2, 100);
+    scene.time.delayedCall(200, () => {
+      sprite.onCoolDown = false;
+    });    
+    console.log("Cooldown completed!");
+  });
+}
+
+export function callSpecialFunction(scene,type){
+  if (type === "drink") {
+  drinks.setCoffeeTableSprite(scene)
+  }
+}
 

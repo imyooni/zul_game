@@ -1,6 +1,7 @@
 import * as sprites from './assets/scripts/sprites.js';
 import * as audio from './assets/scripts/audio.js';
 import * as gameSystem from './assets/scripts/gameSystem.js';
+import * as drinks from '/assets/scripts/drinks.js';
 
 const TILE_SIZE = 32;
 const map_width = 12;
@@ -33,12 +34,7 @@ const config = {
   }
 };
 
-
-
 const game = new Phaser.Game(config);
-
-// ✅ Generate map data (0 = walkable, 1 = blocked)
-
 
 function preload() {
   audio.load_audio(this)
@@ -60,16 +56,16 @@ function update(time, delta) {
   gameSystem.dayNightCycle(this,delta)
 }
 
-
+// ██████████████████ //
+//     CREATE         //
+// ██████████████████ //
 function create() {
 
   sprites.load_animations(this);
   gameSystem.set_tilemap(this)
-  //drawTilemap(this, mapData);
+  audio.init_audio(this)
+  //drawTilemap(this, this.mapData);
   //drawDebugGrid(this);
-
-
-
 
 this.getCurrentTime = function() {
   const dayProgress = (this.timeElapsed % this.dayLength) / this.dayLength;
@@ -78,8 +74,7 @@ this.getCurrentTime = function() {
   return { hour, minute };
 };
 
-this.bgm = this.sound.add('bgm001', { loop: true, volume: 0.35 });
-this.bgm.play();
+//audio.playSound('bgm001')
 
 this.input.keyboard.on('keydown-T', () => {
   gameSystem.skipToTime(this,15); 
@@ -87,13 +82,22 @@ this.input.keyboard.on('keydown-T', () => {
  // console.log(`🕒 ${time.hour}:${String(time.minute).padStart(2, "0")}`);
 });
 
+this.input.keyboard.on('keydown-Q', () => {
+  this.sound.sounds.forEach(sound => {
+    console.log(`Sound key: ${sound.key}, isPlaying: ${sound.isPlaying}`);
+});
+});
+
+this.input.keyboard.on('keydown-S', () => {
+
+});
 
   gameSystem.createPlayer(this)
   gameSystem.createRoom(this)
   gameSystem.createEnergyBar(this)
   gameSystem.createClock(this)
-  gameSystem.skipToTime(this,15); 
-
+  gameSystem.skipToTime(this,9); 
+  drinks.createDrinkTable(this)
 
   let car1 = this.add.sprite(0, 2 * TILE_SIZE + TILE_SIZE / 2,'car1')
   car1.x = -car1.width
@@ -175,15 +179,6 @@ function spawnCar(scene, carType) {
   });
 }
 
-
-
-
-  
-
-
-
-
-
 function MoveNpcTo(scene,npcIndex,x,y,finaldir = null){
   const targetX = Math.floor(x);
   const targetY = Math.floor(y);
@@ -204,7 +199,6 @@ function MoveNpcTo(scene,npcIndex,x,y,finaldir = null){
 
     tempPathfinder.calculate();
 }
-
 
 function moveNPCAlongPath(scene, npc, path, npcIndex, finaldir = null) {
   let i = 1;
@@ -265,21 +259,19 @@ function moveNPCAlongPath(scene, npc, path, npcIndex, finaldir = null) {
   moveNext();
 }
 
-
 function drawTilemap(scene, mapData) {
-  for (let y = 0; y < map_height; y++) {
-    for (let x = 0; x < map_width; x++) {
-      const isBlocked = mapData[y][x] === 1;
-      const frameIndex = mapData[y][x] //isBlocked ? 1 : 0;
-
+  for (let y = 0; y < scene.map_height; y++) {
+    for (let x = 0; x < scene.map_width; x++) {
+      const frameIndex = scene.mapData[y][x] 
       const tile = scene.add.sprite(
-        x * TILE_SIZE + TILE_SIZE / 2,
-        y * TILE_SIZE + TILE_SIZE / 2,
+        x * scene.TILE_SIZE + scene.TILE_SIZE / 2,
+        y * scene.TILE_SIZE + scene.TILE_SIZE / 2,
         'tilemap',
         frameIndex
       );
       tile.setOrigin(0.5);
-      tile.setDepth(10000)
+      tile.setDepth(102)
+      tile.setInteractive = false
     }
   }
 }

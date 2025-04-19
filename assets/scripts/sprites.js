@@ -4,7 +4,6 @@ export function load_sprites(scene) {
 
  scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
  scene.load.image('energyBar', 'assets/sprites/energyBar.png');
- scene.load.image('coffeeTable', 'assets/sprites/coffeeTable.png');
  scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
 
   scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
@@ -12,6 +11,8 @@ export function load_sprites(scene) {
   scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
   scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
   scene.load.spritesheet('dayNight', 'assets/sprites/dayNight.png', {frameWidth: 142,frameHeight: 50 });
+  scene.load.spritesheet('coffeeTable', 'assets/sprites/coffeeTable.png', {frameWidth: 34,frameHeight: 64 });
+  scene.load.spritesheet('coffeeIcon', 'assets/sprites/coffeeIcon.png', {frameWidth: 40,frameHeight: 40 });
   
   for (let index = 0; index < 5; index++) {
     scene.load.image(`car${index}`, `assets/sprites/car${index}.png`);
