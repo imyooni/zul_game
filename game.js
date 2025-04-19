@@ -1,7 +1,7 @@
 import * as sprites from './assets/scripts/sprites.js';
 import * as audio from './assets/scripts/audio.js';
 import * as gameSystem from './assets/scripts/gameSystem.js';
-import * as drinks from '/assets/scripts/drinks.js';
+import * as drinks from './assets/scripts/drinks.js';
 
 const TILE_SIZE = 32;
 const map_width = 12;
