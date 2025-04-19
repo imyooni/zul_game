@@ -1,6 +1,6 @@
 
-import * as audio from '/assets/scripts/audio.js';
-import * as drinks from '/assets/scripts/drinks.js';
+import * as audio from './assets/scripts/audio.js';
+import * as drinks from './assets/scripts/drinks.js';
 
 export function set_tilemap(scene) {
   scene.TILE_SIZE = 32;
