@@ -1,11 +1,11 @@
-import * as sprites from '/assets/scripts/sprites.js';
-import * as audio from '/assets/scripts/audio.js';
-import * as gameSystem from '/assets/scripts/gameSystem.js';
-import * as scene_room from '/assets/scripts/scene_room.js';
-import * as drinks from '/assets/scripts/drinks.js';
-import * as player from '/assets/scripts/player.js';
-import * as zul from '/assets/scripts/zul.js';
-import * as tileMap from '/assets/scripts/tileMap.js';
+import * as sprites from '../assets/scripts/sprites.js';
+import * as audio from '../assets/scripts/audio.js';
+import * as gameSystem from '../assets/scripts/gameSystem.js';
+import * as scene_room from '../assets/scripts/scene_room.js';
+import * as drinks from '../assets/scripts/drinks.js';
+import * as player from '../assets/scripts/player.js';
+import * as zul from '../assets/scripts/zul.js';
+import * as tileMap from '../assets/scripts/tileMap.js';
 
 export default class Game_Scene extends Phaser.Scene {
     constructor() {

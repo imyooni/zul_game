@@ -1,6 +1,6 @@
-import * as sprites from '/assets/scripts/sprites.js';
-import * as audio from '/assets/scripts/audio.js';
-import * as gameSystem from '/assets/scripts/gameSystem.js';
+import * as sprites from '../assets/scripts/sprites.js';
+import * as audio from '../assets/scripts/audio.js';
+import * as gameSystem from '../assets/scripts/gameSystem.js';
 
 export default class LanguageScene extends Phaser.Scene {
   constructor() {
