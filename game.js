@@ -74,7 +74,7 @@ this.getCurrentTime = function() {
   return { hour, minute };
 };
 
-//audio.playSound('bgm001')
+audio.playSound('bgm001')
 
 this.input.keyboard.on('keydown-T', () => {
   gameSystem.skipToTime(this,15); 
