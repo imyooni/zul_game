@@ -1,5 +1,5 @@
-import * as gameSystem  from '/assets/scripts/gameSystem.js';
-import * as audio from '/assets/scripts/audio.js';
+import * as gameSystem  from './assets/scripts/gameSystem.js';
+import * as audio from './assets/scripts/audio.js';
 
 
 export function setDrinksData(scene){
