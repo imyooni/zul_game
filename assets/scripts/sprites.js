@@ -15,6 +15,7 @@ export function loadGameSprites(scene){
   scene.load.spritesheet('dayNight', 'assets/sprites/dayNight.png', {frameWidth: 142,frameHeight: 50 });
   scene.load.spritesheet('coffeeTable', 'assets/sprites/coffeeTable.png', {frameWidth: 34,frameHeight: 64 });
   scene.load.spritesheet('coffeeIcon', 'assets/sprites/coffeeIcon.png', {frameWidth: 40,frameHeight: 40 });
+  scene.load.spritesheet('socials', 'assets/sprites/socials.png', {frameWidth: 48,frameHeight: 47 });
 
   scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
   scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
@@ -31,18 +32,10 @@ export function loadGameSprites(scene){
 }
 
 export function load_sprites(scene) {
-
-
- 
   scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
   scene.load.image('energyBar', 'assets/sprites/energyBar.png');
   scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
   
-
-
-
-
-
 }
 
 export function load_animations(scene){
@@ -58,9 +51,7 @@ export function createDirectionalAnims(scene, spriteKey, animKeyPrefix = spriteK
     right: [8, 7, 6, 7],
     up: [11, 10, 9, 10]
   };
-
   for (const [dir, frames] of Object.entries(directions)) {
-   // console.log(`${animKeyPrefix}_walk_${dir}`)
     scene.anims.create({
       key: `${animKeyPrefix}_walk_${dir}`,
       frames: scene.anims.generateFrameNumbers(spriteKey, { frames }),

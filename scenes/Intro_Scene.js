@@ -1,6 +1,7 @@
 import * as sprites from '../assets/scripts/sprites.js';
 import * as audio from '../assets/scripts/audio.js';
 import * as gameSystem from '../assets/scripts/gameSystem.js';
+import * as SaveGame from '../assets/scripts/SaveGame.js';
 
 export default class IntroScene extends Phaser.Scene {
     constructor() {
@@ -52,7 +53,11 @@ this.tweens.add({
             onComplete: () => {
               this.logo.setVisible(false); // Optionally hide the logo after fade-out
               this.logo.setAlpha(1); // Reset the alpha for future use
-              this.scene.start('LanguageScene');
+              if (SaveGame.loadGameValue('language')) {
+                this.scene.start('GameScene');
+              } else {
+                this.scene.start('LanguageScene');
+              }
             }
           });
        }); 

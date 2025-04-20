@@ -31,6 +31,11 @@ export default class Game_Scene extends Phaser.Scene {
        zul.setZulPos(this,6,8)
       // drawTilemap(this);
 
+      
+      this.input.keyboard.on('keydown-U', () => {
+        localStorage.removeItem('SaveFile');
+      });
+
       this.input.keyboard.on('keydown-S', () => {
         const keys = this.children.list
         .filter(child => child instanceof Phaser.GameObjects.Sprite)
@@ -47,8 +52,9 @@ export default class Game_Scene extends Phaser.Scene {
 
       this.time.delayedCall(200, () => {
         carsInit(this)
-        startBgm(this)
+      //  startBgm(this)
         this.time.delayedCall(700, () => {
+          createSocialButtons(this)
           createTitleCommands(this)
         });
       });
@@ -59,14 +65,26 @@ export default class Game_Scene extends Phaser.Scene {
           console.log(`y:${tileY} x:${tileX}`)
         });
     
+        this.time.delayedCall(2000, () => {
+        gameSystem.entityPath(this,this.player,8,9,'down')
+        this.time.delayedCall(2000, () => {
+          gameSystem.entityPath(this,this.player,10,9,'right')
+          gameSystem.entityPath(this,this.zul,8,6,'up')
+        });
+      });
 
+        /*
       this.time.delayedCall(2000, () => {
-       player.playerPath(this,8,9)
-       this.time.delayedCall(5000, () => {
+       player.playerPath(this,8,9) 
+       this.time.delayedCall(3000, () => {
         player.playerPath(this,11,10)
         zul.zulPath(this,8,9)
+        this.time.delayedCall(2000, () => {
+          zul.zulPath(this,8,6)
+         });
        });
       });
+      */
   
       
 
@@ -81,6 +99,43 @@ export default class Game_Scene extends Phaser.Scene {
 
 }   
 
+function createSocialButtons(scene){
+  scene.socialButtons = [];
+  scene.language = null;
+
+  const Y = scene.scale.height - 80;
+  const spacing = 27;
+  const socials = [
+  { key: 'https://www.youtube.com/@jooyeonkim1774', frame: 0, y: Y - spacing },
+  { key: 'https://www.twitch.tv/Zuljanim', frame: 1, y: Y + spacing }
+  ];
+  
+  // Create language buttons
+  socials.forEach((s, i) => {
+  const sprite = scene.add.sprite(scene.scale.width+48, s.y, 'socials')
+    .setFrame(s.frame)
+    .setDepth(50000)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .disableInteractive();
+    scene.socialButtons.push(sprite);
+    scene.tweens.add({
+    targets: sprite,
+    x: scene.scale.width - (sprite.width-20),
+    duration: 800,
+    ease: 'Back.Out',
+    onComplete: () => sprite.setInteractive()
+  });
+  sprite.on('pointerdown', () => {
+    audio.playSound('systemOk')
+    gameSystem.flashFill(sprite, 0xffffff, 1, 200);
+    scene.time.delayedCall(300, () => {
+      window.open(s.key, '_blank');
+    })
+  });
+ })
+
+}
 function createTitleCommands(scene){
 
   const centerX = scene.scale.width / 2;
@@ -120,6 +175,7 @@ function createTitleCommands(scene){
     });
   
     button.on('pointerdown', () => {
+      audio.playSound('systemOk')
       console.log(`${label} clicked`);
     });
   });

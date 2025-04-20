@@ -2,8 +2,11 @@ export function createZul(scene){
     scene.zul = scene.add.sprite(0 * scene.TILE_SIZE + 16, 0 * scene.TILE_SIZE + 16 / 2, 'zul')
     .setFrame(1)
     .setDepth(1)
-    scene.zul.activePath = false  
+    scene.zul.currentTween = null
     scene.zul.pauseMovement = false  
+    scene.zul.activePath = false
+    scene.zul.spriteKey = 'zul'
+    scene.zul.direction = 1 
 }
 
 export function zulPath(scene,y,x){

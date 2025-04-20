@@ -11,6 +11,103 @@ export function createRoom(scene) {
     .setDepth(100)
 }
 
+export function entityPath(scene,entity,y,x,finalDir){
+  const tileX = Math.floor(x);
+  const tileY = Math.floor(y);
+  const entityTileX = Math.floor(entity.x / scene.TILE_SIZE);
+  const entityTileY = Math.floor(entity.y / scene.TILE_SIZE);
+  entity.easystar = new EasyStar.js();
+  entity.easystar.setGrid(scene.mapData);
+  entity.easystar.setAcceptableTiles([0,3,4]);
+  entity.easystar.findPath(entityTileX, entityTileY, tileX, tileY, (path) => {
+    if (path === null || path.length <= 1) {
+      return
+    } else {
+      if (scene.gameActive) {
+      gameSystem.updateEnergy(scene, (scene.energy[0] - 1))
+      scene.newPos.x = Math.floor(tileX * 32 + 16), scene.newPos.y = Math.floor(tileY * 32 + 16);
+      scene.newPos.setVisible(true)
+      }
+      entity.activePath = true
+      moveAlongPath(scene,path,entity,finalDir);
+    }
+  });
+  entity.easystar.calculate();
+}
+
+export function moveAlongPath(scene, path, entity, finalDir) {
+  if (path.length <= 1) {
+    entity.activePath = false
+    return;
+  }
+  let tileID
+  let i = 1;
+  if (entity.currentTween) {
+    entity.currentTween.stop();
+    entity.currentTween = null;
+  }
+  function moveNext() {
+    if (i >= path.length) {
+      entity.anims.stop();
+      let dirs = [1, 4, 7, 10]
+      if (finalDir === "down") {
+        entity.direction = 0
+      } else if (finalDir === "left") {
+        entity.direction = 1
+      } else if (finalDir === "right") {
+        entity.direction = 2
+      } else if (finalDir === "up") {
+        entity.direction = 3
+      }
+      entity.setFrame(dirs[entity.direction])
+      entity.activePath = false
+     // scene.newPos.setVisible(false)
+      return;
+    }
+    audio.playSound('playerStep')
+    const nextTile = path[i];
+    const nextX = nextTile.x * scene.TILE_SIZE + scene.TILE_SIZE / 2;
+    const nextY = nextTile.y * scene.TILE_SIZE + 16 / 2;
+    tileID = scene.mapData[nextTile.y][nextTile.x]
+    if (tileID === 3) {
+      entity.setDepth(101)
+    }
+    const prevTile = path[i - 1];
+    const dx = nextTile.x - prevTile.x;
+    const dy = nextTile.y - prevTile.y;
+    if (dy > 0) {
+      entity.direction = 0
+      entity.anims.play(`${entity.spriteKey}_walk_down`, true);
+    } else if (dx < 0) {
+      entity.direction = 1
+      entity.anims.play(`${entity.spriteKey}_walk_left`, true);
+    } else if (dx > 0) {
+      entity.direction = 2
+      entity.anims.play(`${entity.spriteKey}_walk_right`, true);
+    } else if (dy < 0) {
+      entity.direction = 3
+      entity.anims.play(`${entity.spriteKey}_walk_up`, true);
+    }
+    entity.currentTween = scene.tweens.add({
+      targets: entity,
+      x: nextX,
+      y: nextY,
+      duration: 200,
+      ease: 'Linear',
+      onComplete: () => {
+        if (tileID === 3) {
+          entity.setDepth(101)
+        } else {
+          entity.setDepth(nextTile.y)
+        }
+        i++;
+        moveNext();
+      }
+    });
+  }
+  moveNext();
+}
+
 
 export function updateEnergy(scene, newEnergy) {
   const fullHeight = scene.energyFill.height;

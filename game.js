@@ -35,21 +35,6 @@ document.fonts.load('16px DefaultFont').then(() => {
 });
 
 
-
-function preload() {
-  audio.load_audio(this)
-  sprites.load_sprites(this);
-}
-
-
-
-// ██████████████████ //
-//     UPDATE         //
-// ██████████████████ //
-function update(time, delta) {
-
-}
-
 // ██████████████████ //
 //     CREATE         //
 // ██████████████████ //
