@@ -52,7 +52,7 @@ export default class Game_Scene extends Phaser.Scene {
 
       this.time.delayedCall(200, () => {
         carsInit(this)
-      //  startBgm(this)
+        startBgm(this)
         this.time.delayedCall(700, () => {
           createSocialButtons(this)
           createTitleCommands(this)
