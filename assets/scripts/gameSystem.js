@@ -64,7 +64,7 @@ export function moveAlongPath(scene, path, entity, finalDir) {
      // scene.newPos.setVisible(false)
       return;
     }
-    audio.playSound('playerStep')
+    audio.playSound('playerStep',scene)
     const nextTile = path[i];
     const nextX = nextTile.x * scene.TILE_SIZE + scene.TILE_SIZE / 2;
     const nextY = nextTile.y * scene.TILE_SIZE + 16 / 2;

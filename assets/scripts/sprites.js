@@ -11,11 +11,13 @@ export function loadGameSprites(scene){
   scene.load.image('room_background', 'assets/sprites/room_background.png');
   scene.load.image('room_top', 'assets/sprites/room_top.png');
   scene.load.image('commandBorder', 'assets/sprites/commandBorder.png');
+  scene.load.image('optionsBorder', 'assets/sprites/optionsBorder.png');
   // sheets
   scene.load.spritesheet('dayNight', 'assets/sprites/dayNight.png', {frameWidth: 142,frameHeight: 50 });
   scene.load.spritesheet('coffeeTable', 'assets/sprites/coffeeTable.png', {frameWidth: 34,frameHeight: 64 });
   scene.load.spritesheet('coffeeIcon', 'assets/sprites/coffeeIcon.png', {frameWidth: 40,frameHeight: 40 });
   scene.load.spritesheet('socials', 'assets/sprites/socials.png', {frameWidth: 48,frameHeight: 47 });
+  scene.load.spritesheet('languageMini', 'assets/sprites/languageMini.png', {frameWidth: 48,frameHeight: 47 });
 
   scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
   scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });

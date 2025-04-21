@@ -7,68 +7,55 @@ export default class LanguageScene extends Phaser.Scene {
   constructor() {
     super('LanguageScene');
   }
-
   preload() {
     sprites.loadLangSprites(this)
   }
   create() {
-    this.scene.remove('IntroScene');
-    // Create and store a solid background texture
-const bg = this.add.graphics()
-.fillStyle(0x5e548e, 1)
-.fillRect(0, 0, this.scale.width, this.scale.height);
-bg.generateTexture('langBG', this.scale.width, this.scale.height);
-bg.destroy();
-
-this.langBackground = this.add.sprite(0, 0, 'langBG').setOrigin(0).setDepth(49999);
-
-this.languageSprites = [];
-this.language = null;
-
-const centerY = this.scale.height / 2;
-const spacing = 30;
-const languages = [
-{ key: 'eng', frame: 0, y: centerY - spacing },
-{ key: 'kor', frame: 1, y: centerY + spacing }
-];
-
-// Create language buttons
-languages.forEach((lang, i) => {
-const sprite = this.add.sprite(-100, lang.y, 'languages')
-  .setFrame(lang.frame)
-  .setDepth(50000)
-  .setOrigin(0.5)
-  .setInteractive({ useHandCursor: true })
-  .disableInteractive();
-
-this.languageSprites.push(sprite);
-
-this.tweens.add({
-  targets: sprite,
-  x: this.scale.width / 2,
-  duration: 800,
-  ease: 'Back.Out',
-  onComplete: () => sprite.setInteractive()
-});
-
-sprite.on('pointerdown', () => {
-  if (this.language !== null) return;
-  this.language = lang.key;
-  SaveGame.saveGameValue('language', `${this.language}`);
-  audio.playSound('systemOk');
-  gameSystem.flashFill(sprite, 0xffffff, 1, 200);
-  languageSelected(this);
-});
-});
-
-    this.input.keyboard.on('keydown-S', () => {
-      const keys = this.children.list
-        .filter(child => child instanceof Phaser.GameObjects.Sprite)
-        .map(child => child.texture.key);
-      console.log(keys);
-    });
+    this.time.delayedCall(500, () => {
+     createLanguageButtons(this)
+    })
   }
-  update() { }
+}
+
+function createLanguageButtons(scene){
+  const bg = scene.add.graphics()
+  .fillStyle(0x5e548e, 1)
+  .fillRect(0, 0, scene.scale.width, scene.scale.height);
+  bg.generateTexture('langBG', scene.scale.width, scene.scale.height);
+  bg.destroy();
+  scene.langBackground = scene.add.sprite(0, 0, 'langBG').setOrigin(0).setDepth(49999);
+  scene.languageSprites = [];
+  scene.language = null;
+  const centerY = scene.scale.height / 2;
+  const spacing = 30;
+  const languages = [
+  { key: 'eng', frame: 0, y: centerY - spacing },
+  { key: 'kor', frame: 1, y: centerY + spacing }
+  ];
+  languages.forEach((lang, i) => {
+  const sprite = scene.add.sprite(-100, lang.y, 'languages')
+    .setFrame(lang.frame)
+    .setDepth(50000)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .disableInteractive();
+    scene.languageSprites.push(sprite);
+    scene.tweens.add({
+    targets: sprite,
+    x: scene.scale.width / 2,
+    duration: 800,
+    ease: 'Back.Out',
+    onComplete: () => sprite.setInteractive()
+  });
+  sprite.on('pointerdown', () => {
+    if (scene.language !== null) return;
+    scene.language = lang.key;
+    SaveGame.saveGameValue('language', `${scene.language}`);
+    audio.playSound('systemOk',scene);
+    gameSystem.flashFill(sprite, 0xffffff, 1, 200);
+    languageSelected(scene);
+  });
+  });
 }
 
 function languageSelected(scene) {

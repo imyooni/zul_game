@@ -1,3 +1,4 @@
+import * as SaveGame from './SaveGame.js';
 
 export function load_audio(scene) {
     // BGM
@@ -10,20 +11,49 @@ export function load_audio(scene) {
     scene.load.audio('systemOk', 'assets/audio/SFX/systemOk.ogg');
 }
 
-let sounds = {};
-export function init_audio(scene) {
-    sounds['zul'] = scene.sound.add('zul', { loop: false, volume: 0.25 });
-    sounds['bgm001'] = scene.sound.add('bgm001', { loop: true, volume: 0.4 });
-    sounds['coffee'] = scene.sound.add('coffee', { loop: false, volume: 0.35 });
-    sounds['playerStep'] = scene.sound.add('playerStep', { loop: false, volume: 0.10 });
-    sounds['systemOk'] = scene.sound.add('systemOk', { loop: false, volume: 0.35 });
-}
 
-export function playSound(key) {
-    const sound = sounds[key];
-    if (sound) {
-        sound.play();
+const sfxVolumes = {
+    zul: 0.5,
+    coffee: 1,
+    playerStep: 1,
+    systemOk: 1,
+};
+
+
+export function bgmVolumes(key)
+{
+  let list = { bgm001: 0.45,
+   } 
+   return list[key]
+};
+
+
+export function playSound(key, scene, isMusic = false) {
+    const bgmValue = SaveGame.loadGameValue('bgmVolume') ?? 1;
+    const sfxValue = SaveGame.loadGameValue('sfxVolume') ?? 1;
+    const settingVolume = isMusic ? bgmValue : sfxValue;
+
+    if (isMusic) {
+        const baseVolume = bgmVolumes(key) ?? 1;
+        const finalVolume = Phaser.Math.Clamp(baseVolume * settingVolume, 0, 1);
+
+        if (scene.bgm) {
+            scene.bgm.stop();
+            scene.bgm.destroy();
+        }
+
+        scene.bgm = scene.sound.add(key, { loop: true, volume: finalVolume });
+        scene.bgm.play();
+        return scene.bgm;
+
     } else {
-        console.warn(`Sound '${key}' not found!`);
+        const baseVolume = sfxVolumes[key] ?? 1;
+        const finalVolume = Phaser.Math.Clamp(baseVolume * settingVolume, 0, 1);
+        scene.sound.play(key, { volume: finalVolume });
+        return null;
     }
 }
+
+
+
+
