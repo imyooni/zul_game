@@ -12,12 +12,18 @@ export function loadGameSprites(scene){
   scene.load.image('room_top', 'assets/sprites/room_top.png');
   scene.load.image('commandBorder', 'assets/sprites/commandBorder.png');
   scene.load.image('optionsBorder', 'assets/sprites/optionsBorder.png');
+  scene.load.image('sliderDot', 'assets/sprites/sliderDot.png');
+  scene.load.image('sliderBar', 'assets/sprites/sliderBar.png');
+  scene.load.image('sliderBarFill', 'assets/sprites/sliderBarFill.png');
+ 
+  scene.load.image('closeIcon', 'assets/sprites/closeIcon.png');
   // sheets
   scene.load.spritesheet('dayNight', 'assets/sprites/dayNight.png', {frameWidth: 142,frameHeight: 50 });
   scene.load.spritesheet('coffeeTable', 'assets/sprites/coffeeTable.png', {frameWidth: 34,frameHeight: 64 });
   scene.load.spritesheet('coffeeIcon', 'assets/sprites/coffeeIcon.png', {frameWidth: 40,frameHeight: 40 });
   scene.load.spritesheet('socials', 'assets/sprites/socials.png', {frameWidth: 48,frameHeight: 47 });
   scene.load.spritesheet('languageMini', 'assets/sprites/languageMini.png', {frameWidth: 48,frameHeight: 47 });
+  scene.load.spritesheet('gameLogo', 'assets/sprites/gameLogo.png', {frameWidth: 240,frameHeight: 93 });
 
   scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
   scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });

@@ -68,6 +68,7 @@ function createIntroLogo(scene) {
             scene.scene.launch('LanguageScene');
           }
           scene.scene.bringToTop('IntroScene')
+          scene.time.delayedCall(200, () => {
           sprites.forEach(sprite => {
             scene.tweens.add({
               targets: sprite,
@@ -79,6 +80,9 @@ function createIntroLogo(scene) {
               }
             });
           });
+         });
+
+          
         });
       });
     }

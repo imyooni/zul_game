@@ -19,7 +19,6 @@ export default class Game_Scene extends Phaser.Scene {
     }
 
     create(){
-
        this.gameActive = false
        sprites.load_animations(this);
        tileMap.setTilemap(this)
@@ -121,7 +120,7 @@ function createSocialButtons(scene){
       .setFrame(currentLang)
       .setDepth(50000)
       .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
+      .setInteractive()
       .disableInteractive();
       scene.languageIcon.y = scene.scale.height - scene.languageIcon.height
       scene.tweens.add({
@@ -132,11 +131,13 @@ function createSocialButtons(scene){
       onComplete: () => scene.languageIcon.setInteractive()
     });
     scene.languageIcon.on('pointerdown', () => {
+      if (scene.titleCommand !== null) return;
       audio.playSound('systemOk', scene);
       gameSystem.flashFill(scene.languageIcon, 0xffffff, 1, 200);
       currentLang = (currentLang + 1) % languages.length;
       SaveGame.saveGameValue('language', languages[currentLang]);
       scene.languageIcon.disableInteractive();
+      scene.gameLogo.setFrame(currentLang)
       updateTitleTexts(scene);
       scene.tweens.add({
         targets: scene.languageIcon,
@@ -159,18 +160,30 @@ function createSocialButtons(scene){
       });
     });
     
-    
-    
-    
-  
 
-  // Create language buttons
+    scene.gameLogo = scene.add.sprite(200,70,'gameLogo')
+      .setFrame(currentLang)
+      .setDepth(50000)
+      .setOrigin(0.5)
+      .setInteractive()
+      .disableInteractive();
+      scene.gameLogo.y = -scene.gameLogo.height
+      scene.tweens.add({
+      targets: scene.gameLogo,
+      y: scene.gameLogo.height-35,
+      duration: 800,
+      ease: 'Back.Out',
+      onComplete: () => {
+        scene.gameLogo.setInteractive()
+      }
+    });
+
   socials.forEach((s, i) => {
   const sprite = scene.add.sprite(scene.scale.width+48, s.y, 'socials')
     .setFrame(s.frame)
     .setDepth(50000)
     .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
+    .setInteractive()
     .disableInteractive();
     scene.socialButtons.push(sprite);
     scene.tweens.add({
@@ -181,6 +194,7 @@ function createSocialButtons(scene){
     onComplete: () => sprite.setInteractive()
   });
   sprite.on('pointerdown', () => {
+    if (scene.titleCommand !== null) return;
     audio.playSound('systemOk',scene)
     gameSystem.flashFill(sprite, 0xffffff, 1, 200);
     scene.time.delayedCall(300, () => {
@@ -193,7 +207,7 @@ function createSocialButtons(scene){
 function createTitleCommands(scene) {
   let buttonsEnabled = 0;
   scene.titleCommand = null;
-  scene.titleButtons = []; // store buttons to update later
+  scene.titleButtons = [];
 
   const centerX = scene.scale.width / 2;
   const centerY = scene.scale.height / 2;
@@ -207,7 +221,7 @@ function createTitleCommands(scene) {
       .setFrame(0)
       .setDepth(50000)
       .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
+      .setInteractive()
       .setAlpha(0);
 
     const buttonText = scene.add.text(centerX, y, label, {
@@ -220,7 +234,7 @@ function createTitleCommands(scene) {
       align: 'center'
     }).setOrigin(0.5).setDepth(50001).setAlpha(0);
 
-    scene.titleButtons.push({ key, buttonText });
+    scene.titleButtons.push({ key, button, buttonText });
 
     scene.tweens.add({
       targets: [button, buttonText],
@@ -235,15 +249,60 @@ function createTitleCommands(scene) {
     button.on('pointerdown', () => {
       if (buttonsEnabled != 4) return;
       if (scene.titleCommand !== null) return;
-      gameSystem.flashFill(button, 0xffffff, 1, 200);
-      createOptions(scene);
       scene.titleCommand = key;
-      audio.playSound('systemOk', scene);
-      console.log(`${key} clicked`);
+      gameSystem.flashFill(button, 0xffffff, 1, 200);
+      if (key === 'newGame') {
+        audio.playSound('systemNewGame', scene);
+        scene.bgm.stop()
+        scene.time.delayedCall(200, () => {
+        setupNewGame(scene)
+        })
+      } else if (key === 'options') {
+        audio.playSound('systemOk', scene);
+        scene.time.delayedCall(200, () => {
+        createOptions(scene);
+        })
+      }
     });
   });
 }
 
+
+function setupNewGame(scene){
+    scene.tweens.add({
+    targets: scene.languageIcon,
+    x: -scene.languageIcon.width,
+    duration: 300,
+    ease: 'Back.In',
+  });
+
+  scene.tweens.add({
+    targets: scene.gameLogo,
+    y: -scene.gameLogo.height,
+    duration: 300,
+    ease: 'Back.In',
+  });
+
+
+  scene.titleButtons.forEach(({ button, buttonText }) => {
+    scene.tweens.add({
+      targets: [button, buttonText],
+      alpha: 0,
+      duration: 300,
+      ease: 'Power1',
+    });
+  });
+  
+
+  scene.socialButtons.forEach((key, index) => {
+  scene.tweens.add({
+    targets: scene.socialButtons[index],
+    x: scene.scale.width+scene.socialButtons[index].width,
+    duration: 300,
+    ease: 'Back.In',
+    });
+  });
+}
 
 function updateTitleTexts(scene) {
   scene.titleButtons.forEach(({ key, buttonText }) => {
@@ -260,92 +319,125 @@ function carsInit(scene){
 }
 
 function startBgm(scene){
-  scene.bgm = audio.playSound('bgm001',scene,true)
+  scene.bgm = audio.playSound('bgm000',scene,true)
 } 
 
 
 function createOptions(scene) {
+  const container = scene.add.container(0, 0).setDepth(89999);
   const sliderWidth = 250;
-  const sliderHeight = 10;
   const knobRadius = 10;
   const centerX = scene.scale.width / 2;
   const centerY = scene.scale.height / 2;
   const sliders = [];
+  let knobGap = 2
   const volumeValues = [
-    SaveGame.loadGameValue('bgmVolume'), // Music volume
-    SaveGame.loadGameValue('sfxVolume')  // SFX volume
+    SaveGame.loadGameValue('bgmVolume'),
+    SaveGame.loadGameValue('sfxVolume')
   ];
-
-  const optionsBorder = scene.add.sprite(0,0,'optionsBorder')
-  .setDepth(89999)
-  .setOrigin(0.5,0.5)
-  optionsBorder.setPosition(scene.scale.width / 2, scene.scale.height / 2);
-  // Initialize index outside of the function
+  const optionsBorder = scene.add.sprite(centerX, centerY, 'optionsBorder').setOrigin(0.5);
+  container.add(optionsBorder);
+  const topRightX = optionsBorder.x + optionsBorder.displayWidth / 2 + 10;
+  const topRightY = optionsBorder.y - optionsBorder.displayHeight / 2 - 20;
+  const closeBtn = scene.add.image(topRightX, topRightY, 'closeIcon').setInteractive();
+  closeBtn.setOrigin(1, 0);
+  closeBtn.on('pointerdown', () => {
+    audio.playSound('systemClose', scene);
+    scene.titleCommand = null;
+    sliders.forEach(slider => {
+      slider.maskShape.destroy();
+      slider.barMask.destroy();
+    });
+    container.destroy();
+  });
+  container.add(closeBtn);
   let index = 0;
   const createSlider = (label, yOffset, setVolumeCallback) => {
-      const sliderX = centerX - sliderWidth / 2;
-      const sliderY = centerY + yOffset;
-      const gauge = scene.add.graphics();
-      gauge.setDepth(90000);
-      gauge.fillStyle(0x666666);
-      gauge.fillRect(sliderX, sliderY - sliderHeight / 2, sliderWidth, sliderHeight);
-      const knob = scene.add.graphics();
-      knob.setDepth(90000);
-      knob.fillStyle(0xffffff);
-      knob.fillCircle(sliderX + sliderWidth * volumeValues[index], sliderY, knobRadius);
-      const knobHit = scene.add.circle(sliderX + sliderWidth * volumeValues[index], sliderY, knobRadius, 0x000000, 0);
-      knobHit.setDepth(90000);
-      knobHit.setInteractive({ draggable: true });
-      const labelText = scene.add.text(centerX, sliderY - 40, label, {
-          fontFamily: 'DefaultFont',
-          fontSize: '24px',
-          stroke: '#3a3a50',
-          strokeThickness: 4,
-          color: '#ebe4f2'
-      }).setOrigin(0.5);
-      labelText.setDepth(90000);
-      sliders.push({
-          knobGraphic: knob,
-          knobHit: knobHit,
-          x: sliderX,
-          y: sliderY,
-          width: sliderWidth,
-          radius: knobRadius,
-          onVolumeChange: setVolumeCallback
-      });
-      index++;
+    const sliderX = centerX - sliderWidth / 2;
+    const sliderY = centerY + yOffset;
+    const currentValue = volumeValues[index];
+    const gauge = scene.add.sprite(centerX, sliderY, 'sliderBar').setOrigin(0.5, 0.5);
+    gauge.displayWidth = sliderWidth;
+    container.add(gauge);
+    const fillX = sliderX + knobGap;
+    const fillSprite = scene.add.sprite(fillX, sliderY, 'sliderBarFill').setOrigin(0, 0.5);
+    container.add(fillSprite);
+    const maskShape = scene.add.graphics();
+    maskShape.fillRect(fillX, sliderY - gauge.height / 2, (sliderWidth - knobGap * 2) * currentValue, gauge.height);
+    const barMask = maskShape.createGeometryMask();
+    fillSprite.setMask(barMask);
+    const knobX = Phaser.Math.Clamp(
+      sliderX + sliderWidth * currentValue,
+      sliderX + knobRadius,
+      sliderX + sliderWidth - knobRadius
+    );
+    const knob = scene.add.sprite(knobX, sliderY, 'sliderDot');
+    knob.setDepth(1);
+    container.add(knob);
+    const knobHit = scene.add.circle(knobX, sliderY, knobRadius, 0x000000, 0);
+    knobHit.setInteractive({ draggable: true });
+    container.add(knobHit);
+    const labelText = scene.add.text(centerX, sliderY - 40, label, {
+      fontFamily: 'DefaultFont',
+      fontSize: '24px',
+      stroke: '#3a3a50',
+      strokeThickness: 4,
+      padding: { top: 8, bottom: 4 },
+      color: '#ebe4f2'
+    }).setOrigin(0.5);
+    container.add(labelText);
+    sliders.push({
+      knobSprite: knob,
+      knobHit: knobHit,
+      maskShape: maskShape,
+      barMask: barMask,
+      fillSprite: fillSprite,
+      x: sliderX,
+      y: sliderY,
+      width: sliderWidth,
+      radius: knobRadius,
+      height: gauge.height,
+      onVolumeChange: setVolumeCallback
+    });
+    index++;
   };
-
-  // Create sliders
-  createSlider('Music Volume', -40, volume => {
+  createSlider(lang.Text('bgm'), -40, volume => {
     SaveGame.saveGameValue('bgmVolume', volume);
     if (scene.bgm) {
-        const baseVolume = audio.bgmVolumes(scene.bgm.key) ?? 1;
-        const finalVolume = Phaser.Math.Clamp(baseVolume * volume, 0, 1);
-        scene.bgm.setVolume(finalVolume);
+      const baseVolume = audio.bgmVolumes(scene.bgm.key) ?? 1;
+      const finalVolume = Phaser.Math.Clamp(baseVolume * volume, 0, 1);
+      scene.bgm.setVolume(finalVolume);
     }
-});
-
-
-  createSlider('SFX Volume', 40, volume => {
-      SaveGame.saveGameValue('sfxVolume', volume);
   });
-
-  // Handle dragging sliders
+  createSlider(lang.Text('sfx'), 40, volume => {
+    SaveGame.saveGameValue('sfxVolume', volume);
+  });
   scene.input.on('drag', (pointer, gameObject, dragX) => {
-      sliders.forEach(slider => {
-          if (gameObject === slider.knobHit) {
-              dragX = Phaser.Math.Clamp(dragX, slider.x, slider.x + slider.width);
-              gameObject.x = dragX;
-              slider.knobGraphic.clear();
-              slider.knobGraphic.fillStyle(0xffffff);
-              slider.knobGraphic.fillCircle(dragX, slider.y, slider.radius);
-              const volume = (dragX - slider.x) / slider.width;
-              slider.onVolumeChange(volume);
-          }
-      });
+    sliders.forEach(slider => {
+      if (gameObject === slider.knobHit) {
+        dragX = Phaser.Math.Clamp(dragX, slider.x + knobGap, slider.x + slider.width - knobGap);
+        const volume = (dragX - slider.x - knobGap) / (slider.width - knobGap * 2);
+        const visualX = Phaser.Math.Clamp(dragX, slider.x + slider.radius, slider.x + slider.width - slider.radius);
+        gameObject.x = visualX;
+        slider.knobSprite.setX(visualX);
+        slider.maskShape.clear();
+        slider.maskShape.fillRect(
+          slider.x + knobGap,
+          slider.y - slider.height / 2,
+          (slider.width - knobGap * 2) * volume,
+          slider.height
+        );
+        slider.onVolumeChange(volume);
+      }
+    });
   });
+  return container;
 }
+
+
+
+
+
 
 
 

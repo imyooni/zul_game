@@ -8,6 +8,8 @@ export function Text(key){
     continue: ["Continue", "계속하기"],
     options: ["Options", "옵션"],
     exit: ["Exit", "종료"],
+    bgm: ["Music", "음악"],
+    sfx: ["Sound Effects", "효과음"],
    } 
   return list[key][languages.indexOf(SaveGame.loadGameValue('language'))] 
 } 

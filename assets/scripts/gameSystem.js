@@ -137,15 +137,6 @@ export function updateEnergy(scene, newEnergy) {
     }
   });
 }
-
-export function getEnergyColor(current, max) {
-  const percent = (current / max) * 100;
-  if (percent > 50) return 0;
-  else if (percent > 34) return 1;
-  else if (percent > 19) return 2;
-  else return 3;
-}
-
 export function createEnergyBar(scene) {
   scene.energy = [100, 100];
   scene.energyBar = scene.add.sprite(0, 0, 'energyBar').setOrigin(0.5, 1).setDepth(1000);
@@ -202,6 +193,15 @@ export function createEnergyBar(scene) {
     scene.energyBorder.setVisible(false);
     scene.energyText.setVisible(false);
   });
+}
+
+
+export function getEnergyColor(current, max) {
+  const percent = (current / max) * 100;
+  if (percent > 50) return 0;
+  else if (percent > 34) return 1;
+  else if (percent > 19) return 2;
+  else return 3;
 }
 
 
