@@ -29,7 +29,7 @@ export function createDrinkTable(scene){
               let drink = scene.coffeeIcon.drinkData
               let newEnergy = scene.energy[0]+drink[1]
               player.changePlayerDir(scene,scene.player,scene.coffeeTable)
-              audio.playSound('coffee')
+              audio.playSound('coffee',scene)
               gameSystem.updateEnergy(scene,newEnergy)
               generateNewDrink(scene)
               let newCoolDown = scene.coffeeIcon.drinkData[2]

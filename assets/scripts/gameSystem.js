@@ -9,6 +9,27 @@ export function createRoom(scene) {
     .setInteractive()
   scene.roomTop = scene.add.sprite(scene.cameras.main.centerX, scene.cameras.main.centerY, 'room_top')
     .setDepth(100)
+
+  scene.mapData[21][7] = 5;
+  scene.closeOpenSign = scene.add.sprite(0, 0, 'closeOpen')
+  .setPosition(7 * scene.TILE_SIZE + 16, 19 * scene.TILE_SIZE + 16)
+  .setInteractive()
+  scene.closeOpenSign.open = false
+  scene.closeOpenSign.on('pointerdown', (pointer) => {
+    let tileX = Math.floor(scene.player.x / scene.TILE_SIZE)
+    let tileY = Math.floor((scene.player.y + scene.player.height / 2) / scene.TILE_SIZE)-1
+    let inRange = scene.mapData[tileY][tileX] === 5
+    if (!inRange) return
+    player.setPlayerDir(scene,'up')
+    if (!scene.closeOpenSign.open) {
+      scene.closeOpenSign.setFrame(1)
+      scene.closeOpenSign.open = true
+    } else {
+      scene.closeOpenSign.setFrame(0)
+      scene.closeOpenSign.open = false
+    }
+    
+  });
 }
 
 export function entityPath(scene,entity,y,x,finalDir){
@@ -18,13 +39,25 @@ export function entityPath(scene,entity,y,x,finalDir){
   const entityTileY = Math.floor(entity.y / scene.TILE_SIZE);
   entity.easystar = new EasyStar.js();
   entity.easystar.setGrid(scene.mapData);
-  entity.easystar.setAcceptableTiles([0,3,4]);
+
+  const allTileIndices = [0,1,2,3,4,5,6,7,8,9,10]; 
+  let unacceptable
+  if (entity === scene.player) {
+    unacceptable = [1,2];
+    //entity.easystar.setAcceptableTiles([0,3,4,5]);
+  } else {
+    unacceptable = [1,3];
+    //entity.easystar.setAcceptableTiles([0,2,4,5]);
+  }
+  const acceptable = allTileIndices.filter(t => !unacceptable.includes(t));
+  entity.easystar.setAcceptableTiles(acceptable);
+  
   entity.easystar.findPath(entityTileX, entityTileY, tileX, tileY, (path) => {
     if (path === null || path.length <= 1) {
       return
     } else {
-      if (scene.gameActive) {
-      gameSystem.updateEnergy(scene, (scene.energy[0] - 1))
+      if (scene.gameActive && entity === scene.player) {
+      updateEnergy(scene, (scene.energy[0] - 1))
       scene.newPos.x = Math.floor(tileX * 32 + 16), scene.newPos.y = Math.floor(tileY * 32 + 16);
       scene.newPos.setVisible(true)
       }
@@ -61,7 +94,9 @@ export function moveAlongPath(scene, path, entity, finalDir) {
       }
       entity.setFrame(dirs[entity.direction])
       entity.activePath = false
-     // scene.newPos.setVisible(false)
+      if (entity === scene.player && scene.newPos) {
+        scene.newPos.setVisible(false)
+      }
       return;
     }
     audio.playSound('playerStep',scene)
@@ -107,7 +142,6 @@ export function moveAlongPath(scene, path, entity, finalDir) {
   }
   moveNext();
 }
-
 
 export function updateEnergy(scene, newEnergy) {
   const fullHeight = scene.energyFill.height;
@@ -195,7 +229,6 @@ export function createEnergyBar(scene) {
   });
 }
 
-
 export function getEnergyColor(current, max) {
   const percent = (current / max) * 100;
   if (percent > 50) return 0;
@@ -203,7 +236,6 @@ export function getEnergyColor(current, max) {
   else if (percent > 19) return 2;
   else return 3;
 }
-
 
 export function createClock(scene) {
   scene.clockHide = true
@@ -220,7 +252,7 @@ export function createClock(scene) {
   };
   scene.timeElapsed = 0;
   scene.dayLength = 1440;
-  scene.timeSpeed = 1;         // 1 = real time; 2 = twice as fast
+  scene.timeSpeed = 10;         // 1 = real time; 2 = twice as fast
   scene.isTimePaused = false;
   scene.clock = scene.add.sprite(Math.floor(scene.scale.width / 2), 25, 'dayNight')
   .setDepth(1000)

@@ -27,10 +27,16 @@ export function loadGameSprites(scene){
 
   scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
   scene.load.spritesheet('tilemap', 'assets/sprites/tilemap.png', {frameWidth: 32,frameHeight: 32 });
+  scene.load.spritesheet('closeOpen', 'assets/sprites/closeOpen.png', {frameWidth: 32, frameHeight: 32});
  
   // special npcs & player
   scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
   scene.load.spritesheet('zul', 'assets/sprites/zul.png', {frameWidth: 32, frameHeight: 48});
+
+  scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
+  scene.load.image('energyBar', 'assets/sprites/energyBar.png');
+  scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
+  
   // npcs
   scene.load.spritesheet('npc1', 'assets/sprites/npc1.png', {frameWidth: 32, frameHeight: 48});
 
@@ -40,9 +46,7 @@ export function loadGameSprites(scene){
 }
 
 export function load_sprites(scene) {
-  scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
-  scene.load.image('energyBar', 'assets/sprites/energyBar.png');
-  scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
+
   
 }
 

@@ -39,6 +39,7 @@ export function setTilemap(scene) {
       [11, 1], [11, 2], [11, 3], [11, 4], [11, 5], [11, 6],
      //[7, 9],
       [13, 1], [13, 2], [13, 3], [13, 4], [13, 5], [13, 6],
+      [15, 1], [15, 2], [15, 3], [15, 4], [15, 5], [15, 6],
     ]
     for (let index = 0; index < playerlockedTiles.length; index++) {
       let id = playerlockedTiles[index]
@@ -47,6 +48,7 @@ export function setTilemap(scene) {
     let npclockedTiles = [
       [12, 1], [12, 2], [12, 3], [12, 4], [12, 5], [12, 6],
       [14, 1], [14, 2], [14, 3], [14, 4], [14, 5], [14, 6],
+    //  [16, 1], [16, 2], [16, 3], [16, 4], [16, 5], [16, 6],
     ]
     for (let index = 0; index < npclockedTiles.length; index++) {
       let id = npclockedTiles[index]

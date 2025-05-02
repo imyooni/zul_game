@@ -10,198 +10,177 @@ import * as SaveGame from '../assets/scripts/SaveGame.js';
 import * as lang from '../assets/scripts/lang.js';
 
 export default class Game_Scene extends Phaser.Scene {
-    constructor() {
-      super('GameScene');
-    }
-  
-    preload() {
-      sprites.loadGameSprites(this)
-    }
+  constructor() {
+    super('GameScene');
+  }
 
-    create(){
-       this.gameActive = false
-       sprites.load_animations(this);
-       tileMap.setTilemap(this)
-       gameSystem.createClock(this)
-       gameSystem.createRoom(this)
-       drinks.createDrinkTable(this)
-       player.createPlayer(this)
-       player.setPlayerPos(this,6,8)
-       
-       zul.createZul(this)
-       zul.setZulPos(this,6,8)
-      // drawTilemap(this);
+  preload() {
+    sprites.loadGameSprites(this)
+  }
 
-      
-      this.input.keyboard.on('keydown-U', () => {
-        localStorage.removeItem('SaveFile');
-      });
+  create() {
+    this.gameActive = false
+    sprites.load_animations(this);
+    tileMap.setTilemap(this)
+    gameSystem.createClock(this)
+    gameSystem.createRoom(this)
+    drinks.createDrinkTable(this)
+    player.createPlayer(this)
+    player.setPlayerPos(this, 6, 8)
 
-      this.input.keyboard.on('keydown-S', () => {
-        const keys = this.children.list
+    zul.createZul(this)
+    zul.setZulPos(this, 6, 8)
+   // drawTilemap(this);
+
+
+    this.input.keyboard.on('keydown-U', () => {
+      localStorage.removeItem('SaveFile');
+    });
+
+    this.input.keyboard.on('keydown-S', () => {
+      const keys = this.children.list
         .filter(child => child instanceof Phaser.GameObjects.Sprite)
         .map(child => child.texture.key);
-        console.log(keys);
-      });
+      console.log(keys);
+    });
 
-      this.input.keyboard.on('keydown-Q', () => {
+    this.input.keyboard.on('keydown-Q', () => {
       this.scene.manager.scenes.forEach(scene => {
         console.log(`Scene Key: ${scene.scene.key}, Active: ${scene.scene.isActive()}, Visible: ${scene.scene.isVisible()}, Sleeping: ${scene.scene.isSleeping()}`);
       });
-    }); 
-      
+    });
 
-   
 
-    
-      this.time.delayedCall(200, () => {
-        carsInit(this)
-        startBgm(this)
-        this.time.delayedCall(700, () => {
-          createSocialButtons(this)
-          createTitleCommands(this)
-        });
+
+
+
+    this.time.delayedCall(200, () => {
+      carsInit(this)
+      startBgm(this)
+      this.time.delayedCall(700, () => {
+        createSocialButtons(this)
+        createTitleCommands(this)
       });
-      
-      this.input.on('pointerdown', (pointer) => {
-          const tileX = Math.floor(pointer.worldX / this.TILE_SIZE);
-          const tileY = Math.floor(pointer.worldY / this.TILE_SIZE);
-          console.log(`y:${tileY} x:${tileX}`)
-        });
-    
-        this.time.delayedCall(2000, () => {
-        gameSystem.entityPath(this,this.player,8,9,'down')
-        this.time.delayedCall(2000, () => {
-          gameSystem.entityPath(this,this.player,10,9,'right')
-          gameSystem.entityPath(this,this.zul,8,6,'up')
-        });
-      });
+    });
 
-        /*
-      this.time.delayedCall(2000, () => {
-       player.playerPath(this,8,9) 
-       this.time.delayedCall(3000, () => {
-        player.playerPath(this,11,10)
-        zul.zulPath(this,8,9)
-        this.time.delayedCall(2000, () => {
-          zul.zulPath(this,8,6)
-         });
-       });
-      });
-      */
-  
-      
+    this.input.on('pointerdown', (pointer) => {
+      const tileX = Math.floor(pointer.worldX / this.TILE_SIZE);
+      const tileY = Math.floor(pointer.worldY / this.TILE_SIZE);
+      console.log(`y:${tileY} x:${tileX}`)
+    });
 
-      
+
+
+
+  }
+
+  update(time, delta) {
+    if (this.dayNightOverlay) {
+      gameSystem.dayNightCycle(this, delta)
     }
+  }
 
-   update(time, delta) {
-     if (this.dayNightOverlay) {
-       gameSystem.dayNightCycle(this,delta)
-     }
-   }
+}
 
-}   
-
-function createSocialButtons(scene){
+function createSocialButtons(scene) {
   scene.socialButtons = [];
   scene.language = null;
 
   const Y = scene.scale.height - 80;
   const spacing = 27;
   const socials = [
-  { key: 'https://www.youtube.com/@jooyeonkim1774', frame: 0, y: Y - spacing },
-  { key: 'https://www.twitch.tv/Zuljanim', frame: 1, y: Y + spacing }
+    { key: 'https://www.youtube.com/@jooyeonkim1774', frame: 0, y: Y - spacing },
+    { key: 'https://www.twitch.tv/Zuljanim', frame: 1, y: Y + spacing }
   ];
-  
-    let languages = ['eng','kor']
-    let currentLang = languages.indexOf(SaveGame.loadGameValue('language'))
-    scene.languageIcon = scene.add.sprite(0,0,'languageMini')
-      .setFrame(currentLang)
-      .setDepth(50000)
-      .setOrigin(0.5)
-      .setInteractive()
-      .disableInteractive();
-      scene.languageIcon.y = scene.scale.height - scene.languageIcon.height
-      scene.tweens.add({
-      targets: scene.languageIcon,
-      x: scene.languageIcon.width - 20,
-      duration: 800,
-      ease: 'Back.Out',
-      onComplete: () => scene.languageIcon.setInteractive()
-    });
-    scene.languageIcon.on('pointerdown', () => {
-      if (scene.titleCommand !== null) return;
-      audio.playSound('systemOk', scene);
-      gameSystem.flashFill(scene.languageIcon, 0xffffff, 1, 200);
-      currentLang = (currentLang + 1) % languages.length;
-      SaveGame.saveGameValue('language', languages[currentLang]);
-      scene.languageIcon.disableInteractive();
-      scene.gameLogo.setFrame(currentLang)
-      updateTitleTexts(scene);
-      scene.tweens.add({
-        targets: scene.languageIcon,
-        x: -scene.languageIcon.width,
-        duration: 300,
-        ease: 'Back.In',
-        onComplete: () => {
-          scene.languageIcon.setFrame(currentLang);
-          scene.languageIcon.x = -scene.languageIcon.width;
-          scene.tweens.add({
-            targets: scene.languageIcon,
-            x: scene.languageIcon.width - 20,  
-            duration: 800,
-            ease: 'Back.Out',
-            onComplete: () => {
-              scene.languageIcon.setInteractive();
-            }
-          });
-        }
-      });
-    });
-    
 
-    scene.gameLogo = scene.add.sprite(200,70,'gameLogo')
-      .setFrame(currentLang)
-      .setDepth(50000)
-      .setOrigin(0.5)
-      .setInteractive()
-      .disableInteractive();
-      scene.gameLogo.y = -scene.gameLogo.height
-      scene.tweens.add({
-      targets: scene.gameLogo,
-      y: scene.gameLogo.height-35,
-      duration: 800,
-      ease: 'Back.Out',
-      onComplete: () => {
-        scene.gameLogo.setInteractive()
-      }
-    });
-
-  socials.forEach((s, i) => {
-  const sprite = scene.add.sprite(scene.scale.width+48, s.y, 'socials')
-    .setFrame(s.frame)
+  let languages = ['eng', 'kor']
+  let currentLang = languages.indexOf(SaveGame.loadGameValue('language'))
+  scene.languageIcon = scene.add.sprite(0, 0, 'languageMini')
+    .setFrame(currentLang)
     .setDepth(50000)
     .setOrigin(0.5)
     .setInteractive()
     .disableInteractive();
-    scene.socialButtons.push(sprite);
-    scene.tweens.add({
-    targets: sprite,
-    x: scene.scale.width - (sprite.width-20),
+  scene.languageIcon.y = scene.scale.height - scene.languageIcon.height
+  scene.tweens.add({
+    targets: scene.languageIcon,
+    x: scene.languageIcon.width - 20,
     duration: 800,
     ease: 'Back.Out',
-    onComplete: () => sprite.setInteractive()
+    onComplete: () => scene.languageIcon.setInteractive()
   });
-  sprite.on('pointerdown', () => {
+  scene.languageIcon.on('pointerdown', () => {
     if (scene.titleCommand !== null) return;
-    audio.playSound('systemOk',scene)
-    gameSystem.flashFill(sprite, 0xffffff, 1, 200);
-    scene.time.delayedCall(300, () => {
-      window.open(s.key, '_blank');
-    })
+    audio.playSound('systemOk', scene);
+    gameSystem.flashFill(scene.languageIcon, 0xffffff, 1, 200);
+    currentLang = (currentLang + 1) % languages.length;
+    SaveGame.saveGameValue('language', languages[currentLang]);
+    scene.languageIcon.disableInteractive();
+    scene.gameLogo.setFrame(currentLang)
+    updateTitleTexts(scene);
+    scene.tweens.add({
+      targets: scene.languageIcon,
+      x: -scene.languageIcon.width,
+      duration: 300,
+      ease: 'Back.In',
+      onComplete: () => {
+        scene.languageIcon.setFrame(currentLang);
+        scene.languageIcon.x = -scene.languageIcon.width;
+        scene.tweens.add({
+          targets: scene.languageIcon,
+          x: scene.languageIcon.width - 20,
+          duration: 800,
+          ease: 'Back.Out',
+          onComplete: () => {
+            scene.languageIcon.setInteractive();
+          }
+        });
+      }
+    });
   });
- })
+
+
+  scene.gameLogo = scene.add.sprite(200, 70, 'gameLogo')
+    .setFrame(currentLang)
+    .setDepth(50000)
+    .setOrigin(0.5)
+    .setInteractive()
+    .disableInteractive();
+  scene.gameLogo.y = -scene.gameLogo.height
+  scene.tweens.add({
+    targets: scene.gameLogo,
+    y: scene.gameLogo.height - 35,
+    duration: 800,
+    ease: 'Back.Out',
+    onComplete: () => {
+      scene.gameLogo.setInteractive()
+    }
+  });
+
+  socials.forEach((s, i) => {
+    const sprite = scene.add.sprite(scene.scale.width + 48, s.y, 'socials')
+      .setFrame(s.frame)
+      .setDepth(50000)
+      .setOrigin(0.5)
+      .setInteractive()
+      .disableInteractive();
+    scene.socialButtons.push(sprite);
+    scene.tweens.add({
+      targets: sprite,
+      x: scene.scale.width - (sprite.width - 20),
+      duration: 800,
+      ease: 'Back.Out',
+      onComplete: () => sprite.setInteractive()
+    });
+    sprite.on('pointerdown', () => {
+      if (scene.titleCommand !== null) return;
+      audio.playSound('systemOk', scene)
+      gameSystem.flashFill(sprite, 0xffffff, 1, 200);
+      scene.time.delayedCall(300, () => {
+        window.open(s.key, '_blank');
+      })
+    });
+  })
 }
 
 function createTitleCommands(scene) {
@@ -255,12 +234,12 @@ function createTitleCommands(scene) {
         audio.playSound('systemNewGame', scene);
         scene.bgm.stop()
         scene.time.delayedCall(200, () => {
-        setupNewGame(scene)
+          setupNewGame(scene)
         })
       } else if (key === 'options') {
         audio.playSound('systemOk', scene);
         scene.time.delayedCall(200, () => {
-        createOptions(scene);
+          createOptions(scene);
         })
       }
     });
@@ -268,8 +247,8 @@ function createTitleCommands(scene) {
 }
 
 
-function setupNewGame(scene){
-    scene.tweens.add({
+function setupNewGame(scene) {
+  scene.tweens.add({
     targets: scene.languageIcon,
     x: -scene.languageIcon.width,
     duration: 300,
@@ -292,17 +271,90 @@ function setupNewGame(scene){
       ease: 'Power1',
     });
   });
-  
+
 
   scene.socialButtons.forEach((key, index) => {
-  scene.tweens.add({
-    targets: scene.socialButtons[index],
-    x: scene.scale.width+scene.socialButtons[index].width,
-    duration: 300,
-    ease: 'Back.In',
+    scene.tweens.add({
+      targets: scene.socialButtons[index],
+      x: scene.scale.width + scene.socialButtons[index].width,
+      duration: 300,
+      ease: 'Back.In',
     });
   });
+
+  scene.time.delayedCall(100, () => {
+    createLoadScreen(scene)
+  })
+
+
 }
+
+function createLoadScreen(scene) {
+  const bgGraphics = scene.add.graphics()
+    .fillStyle(0x5e548e, 1)
+    .fillRect(0, 0, scene.scale.width, scene.scale.height);
+  bgGraphics.generateTexture('loadScreen', scene.scale.width, scene.scale.height);
+  bgGraphics.destroy();
+  const bgImage = scene.add.image(0, 0, 'loadScreen');
+  const loadingText = scene.add.text(0, 0, 'Loading.', {
+    fontFamily: 'DefaultFont',
+    fontSize: '24px',
+    stroke: '#3a3a50',
+    strokeThickness: 4,
+    color: '#ebe4f2',
+    padding: { top: 8, bottom: 4 },
+    align: 'center'
+  }).setOrigin(0.5);
+  const container = scene.add.container(scene.scale.width / 2, -scene.scale.height / 2, [bgImage, loadingText]);
+  container.setDepth(900000);
+  loadingText.y = 20;
+  scene.tweens.add({
+    targets: container,
+    y: scene.scale.height / 2,
+    duration: 300,
+    ease: 'linear',
+  });
+  let dotCount = 1;
+  scene.time.addEvent({
+    delay: 500,
+    callback: () => {
+      dotCount = (dotCount % 3) + 1;
+      loadingText.setText('Loading' + '.'.repeat(dotCount));
+    },
+    loop: true,
+  });
+  scene.time.delayedCall(2000, () => {
+    scene.clock.setVisible(true)
+    gameSystem.createEnergyBar(scene)
+    scene.coffeeIcon.setVisible(true)
+      scene.time.delayedCall(2000, () => {
+        gameSystem.skipToTime(scene, 9)
+        scene.isTimePaused = true
+        audio.playSound('bgm001',scene,true)
+        scene.time.delayedCall(10, () => {
+          scene.tweens.add({
+            targets: container,
+            y: -scene.scale.height,
+            duration: 300,
+            ease: 'linear',
+            onComplete: () => {
+              gameSystem.entityPath(scene,scene.player,9,9,'down')
+              scene.time.delayedCall(500, () => {
+                scene.gameActive = true
+                scene.mapData[7][9] = 2;
+                //drawTilemap(scene)
+                gameSystem.entityPath(scene,scene.zul,8,6,'up')
+              })
+            }
+          });
+        })
+      })
+
+
+      
+  })
+}
+
 
 function updateTitleTexts(scene) {
   scene.titleButtons.forEach(({ key, buttonText }) => {
@@ -310,17 +362,17 @@ function updateTitleTexts(scene) {
   });
 }
 
-function carsInit(scene){
+function carsInit(scene) {
   scene_room.createCars(scene)
   scene.time.delayedCall(1000, () => {
     scene_room.scheduleCarSpawn(scene, 'car1');
     scene_room.scheduleCarSpawn(scene, 'car2');
-   }); 
+  });
 }
 
-function startBgm(scene){
-  scene.bgm = audio.playSound('bgm000',scene,true)
-} 
+function startBgm(scene) {
+  scene.bgm = audio.playSound('bgm000', scene, true)
+}
 
 
 function createOptions(scene) {
@@ -434,27 +486,32 @@ function createOptions(scene) {
   return container;
 }
 
-
-
-
-
-
-
-
-
 function drawTilemap(scene) {
+  // Destroy existing tiles if any
+  if (scene.tiles) {
+    scene.tiles.forEach(tile => tile.destroy());
+  }
+
+  // Initialize tiles array
+  scene.tiles = [];
+
+  // Loop through map data and create tiles
   for (let y = 0; y < scene.map_height; y++) {
     for (let x = 0; x < scene.map_width; x++) {
-      const frameIndex = scene.mapData[y][x] 
-      const tile = scene.add.sprite(
+      const frameIndex = scene.mapData[y][x];
+      let tile = scene.add.sprite(
         x * scene.TILE_SIZE + scene.TILE_SIZE / 2,
         y * scene.TILE_SIZE + scene.TILE_SIZE / 2,
         'tilemap',
         frameIndex
       );
       tile.setOrigin(0.5);
-      tile.setDepth(102)
-      tile.setInteractive = false
+      tile.setDepth(102);
+      tile.setInteractive = false;
+
+      // Store tile
+      scene.tiles.push(tile);
     }
   }
 }
+

@@ -17,10 +17,13 @@ export function createPlayer(scene) {
 
   scene.roomBack.on('pointerdown', (pointer) => {
     if (!scene.gameActive) return
-    if (scene.activePath) return;
+    if (scene.player.activePath) return;
     if (scene.player.pauseMovement) return
     const tileX = Math.floor(pointer.worldX / scene.TILE_SIZE);
     const tileY = Math.floor(pointer.worldY / scene.TILE_SIZE);
+    const zulX = Math.floor(scene.zul.x / scene.TILE_SIZE);
+    const zulY = Math.floor(scene.zul.y / scene.TILE_SIZE);    
+    if (tileX === zulX && tileY === zulY) return
     gameSystem.entityPath(scene,scene.player,tileY,tileX)
   });
 }
@@ -43,6 +46,18 @@ export function playerJump(scene){
     }
   });  
 } 
+
+export function setPlayerDir(scene,dir) {
+  if (dir === 'right') {
+    scene.player.setFrame(7)
+  } else if (dir === 'left') {
+    scene.player.setFrame(4)
+  } else if (dir === 'down') {
+    scene.player.setFrame(1)
+  } else if (dir === 'up') {
+    scene.player.setFrame(10)
+  }
+}
 
 export function changePlayerDir(scene,player,target){
   let playerX = Math.floor(player.x / scene.TILE_SIZE)
