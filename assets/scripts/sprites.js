@@ -10,6 +10,7 @@ export function loadGameSprites(scene){
   // single
   scene.load.image('room_background', 'assets/sprites/room_background.png');
   scene.load.image('room_top', 'assets/sprites/room_top.png');
+  scene.load.image('room_top_ex', 'assets/sprites/room_top_ex.png');
   scene.load.image('commandBorder', 'assets/sprites/commandBorder.png');
   scene.load.image('optionsBorder', 'assets/sprites/optionsBorder.png');
   scene.load.image('sliderDot', 'assets/sprites/sliderDot.png');
@@ -35,6 +36,7 @@ export function loadGameSprites(scene){
 
   scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
   scene.load.image('energyBar', 'assets/sprites/energyBar.png');
+  scene.load.image('calendar', 'assets/sprites/calendar.png');
   scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
   
   // npcs

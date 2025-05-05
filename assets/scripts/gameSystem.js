@@ -9,6 +9,10 @@ export function createRoom(scene) {
     .setInteractive()
   scene.roomTop = scene.add.sprite(scene.cameras.main.centerX, scene.cameras.main.centerY, 'room_top')
     .setDepth(100)
+  scene.roomTopEx = scene.add.sprite((scene.cameras.main.centerX-(32*2))-1, scene.cameras.main.centerY+(32*2), 'room_top_ex')
+    .setDepth(85)
+   
+
 
   scene.mapData[21][7] = 5;
   scene.closeOpenSign = scene.add.sprite(0, 0, 'closeOpen')
@@ -28,7 +32,6 @@ export function createRoom(scene) {
       scene.closeOpenSign.setFrame(0)
       scene.closeOpenSign.open = false
     }
-    
   });
 }
 
@@ -39,19 +42,15 @@ export function entityPath(scene,entity,y,x,finalDir){
   const entityTileY = Math.floor(entity.y / scene.TILE_SIZE);
   entity.easystar = new EasyStar.js();
   entity.easystar.setGrid(scene.mapData);
-
   const allTileIndices = [0,1,2,3,4,5,6,7,8,9,10]; 
   let unacceptable
   if (entity === scene.player) {
     unacceptable = [1,2];
-    //entity.easystar.setAcceptableTiles([0,3,4,5]);
   } else {
     unacceptable = [1,3];
-    //entity.easystar.setAcceptableTiles([0,2,4,5]);
   }
   const acceptable = allTileIndices.filter(t => !unacceptable.includes(t));
   entity.easystar.setAcceptableTiles(acceptable);
-  
   entity.easystar.findPath(entityTileX, entityTileY, tileX, tileY, (path) => {
     if (path === null || path.length <= 1) {
       return
@@ -105,7 +104,7 @@ export function moveAlongPath(scene, path, entity, finalDir) {
     const nextY = nextTile.y * scene.TILE_SIZE + 16 / 2;
     tileID = scene.mapData[nextTile.y][nextTile.x]
     if (tileID === 3) {
-      entity.setDepth(101)
+      entity.setDepth(86)
     }
     const prevTile = path[i - 1];
     const dx = nextTile.x - prevTile.x;
@@ -131,7 +130,7 @@ export function moveAlongPath(scene, path, entity, finalDir) {
       ease: 'Linear',
       onComplete: () => {
         if (tileID === 3) {
-          entity.setDepth(101)
+          entity.setDepth(86)
         } else {
           entity.setDepth(nextTile.y)
         }
@@ -171,11 +170,12 @@ export function updateEnergy(scene, newEnergy) {
     }
   });
 }
+
 export function createEnergyBar(scene) {
   scene.energy = [100, 100];
   scene.energyBar = scene.add.sprite(0, 0, 'energyBar').setOrigin(0.5, 1).setDepth(1000);
-  scene.energyBar.x = scene.scale.width - scene.energyBar.width / 2 - 10;
-  scene.energyBar.y = scene.scale.height - 80;
+  scene.energyBar.x = 30//scene.scale.width - scene.energyBar.width / 2 - 20;
+  scene.energyBar.y = scene.scale.height - 10//scene.scale.height - 160;
   scene.energyFill = scene.add.sprite(0, 0, 'energyFill').setOrigin(0.5, 1).setDepth(1000);
   scene.energyFill.x = scene.energyBar.x;
   scene.energyFill.y = scene.energyBar.y - (111 - 105) / 2;
@@ -227,6 +227,10 @@ export function createEnergyBar(scene) {
     scene.energyBorder.setVisible(false);
     scene.energyText.setVisible(false);
   });
+
+  scene.calendar = scene.add.sprite(0, 0, 'calendar').setOrigin(0.5, 1).setDepth(1000);
+  scene.calendar.x = 50
+  scene.calendar.y = 55
 }
 
 export function getEnergyColor(current, max) {
