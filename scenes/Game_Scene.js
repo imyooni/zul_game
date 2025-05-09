@@ -298,23 +298,22 @@ function setupNewGame(scene) {
 
 function createLoadScreen(scene) {
   const bgGraphics = scene.add.graphics()
-    .fillStyle(0x5e548e, 1)
+    .fillStyle(0x565973, 1)
     .fillRect(0, 0, scene.scale.width, scene.scale.height);
   bgGraphics.generateTexture('loadScreen', scene.scale.width, scene.scale.height);
   bgGraphics.destroy();
-  const bgImage = scene.add.image(0, 0, 'loadScreen');
-  const loadingText = scene.add.text(0, 0, 'Loading.', {
-    fontFamily: 'DefaultFont',
-    fontSize: '24px',
-    stroke: '#3a3a50',
-    strokeThickness: 4,
-    color: '#ebe4f2',
-    padding: { top: 8, bottom: 4 },
-    align: 'center'
-  }).setOrigin(0.5);
+const bgImage = scene.add.image(0, 0, 'loadScreen').setOrigin(0.5); 
+const loadingText = scene.add.text(0, 0, `${lang.Text('loading')}`, {
+  fontFamily: 'DefaultFont',
+  fontSize: '24px',
+  stroke: '#3a3a50',
+  strokeThickness: 4,
+  color: '#ebe4f2',
+  padding: { top: 8, bottom: 4 },
+  align: 'center'
+}).setOrigin(0.5); 
   const container = scene.add.container(scene.scale.width / 2, -scene.scale.height / 2, [bgImage, loadingText]);
   container.setDepth(900000);
-  loadingText.y = 20;
   scene.tweens.add({
     targets: container,
     y: scene.scale.height / 2,
@@ -326,7 +325,7 @@ function createLoadScreen(scene) {
     delay: 500,
     callback: () => {
       dotCount = (dotCount % 3) + 1;
-      loadingText.setText('Loading' + '.'.repeat(dotCount));
+      loadingText.setText(`${lang.Text('loading')}` + '.'.repeat(dotCount));
     },
     loop: true,
   });
@@ -345,15 +344,12 @@ function createLoadScreen(scene) {
             duration: 300,
             ease: 'linear',
             onComplete: () => {
-             // gameSystem.createCalendar(scene)
-              
               gameSystem.showClock(scene, true)
               gameSystem.createPauseIcon(scene)
               gameSystem.entityPath(scene,scene.player,9,9,'down')
               scene.time.delayedCall(500, () => {
                 scene.gameActive = true
                 scene.mapData[7][9] = 2;
-                //drawTilemap(scene)
                 gameSystem.entityPath(scene,scene.zul,8,6,'up')
               })
             }

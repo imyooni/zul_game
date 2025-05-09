@@ -12,6 +12,8 @@ export function load_audio(scene) {
     scene.load.audio('systemNewGame', 'assets/audio/SFX/systemNewGame.ogg');
     scene.load.audio('systemOk', 'assets/audio/SFX/systemOk.ogg');
     scene.load.audio('systemClose', 'assets/audio/SFX/systemClose.ogg');
+    scene.load.audio('systemMoney', 'assets/audio/SFX/systemMoney.ogg');
+    scene.load.audio('systemSign', 'assets/audio/SFX/systemSign.ogg');
 }
 
 
@@ -19,9 +21,11 @@ const sfxVolumes = {
     zul: 0.5,
     coffee: 1,
     playerStep: 0.5,
+    systemMoney: 0.9,
     systemNewGame: 1,
     systemOk: 1,
     systemClose: 1,
+    systemSign: 1,
 };
 
 

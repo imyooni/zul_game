@@ -19,6 +19,7 @@ html, body {
   display: block;
   margin: auto;
   image-rendering: pixelated;
+  border: 1px solid black;
 }
 
 @font-face {
@@ -30,7 +31,8 @@ html, body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background: #5e548e; 
+  background: #000000; 
+ /* background: #5e548e; */
   z-index: 50;
   display: flex;
   align-items: center;

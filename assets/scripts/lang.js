@@ -7,6 +7,7 @@ export function Text(key){
     newGame: ["New Game", "새 게임"],
     continue: ["Continue", "계속하기"],
     options: ["Options", "옵션"],
+    loading: ["Loading", "로딩 중"],
     exit: ["Exit", "종료"],
     bgm: ["Music", "음악"],
     sfx: ["Sound Effects", "효과음"],

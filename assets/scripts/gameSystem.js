@@ -13,6 +13,8 @@ export function createRoom(scene) {
   scene.roomTopEx = scene.add.sprite((scene.cameras.main.centerX - (32 * 2)) - 1, scene.cameras.main.centerY + (32 * 2), 'room_top_ex')
     .setDepth(85)
 
+  scene.tips = scene.add.sprite(7 * scene.TILE_SIZE + scene.TILE_SIZE / 2, 8 * scene.TILE_SIZE - 1 / 2, 'tips')
+    .setDepth(8)
 
 
   scene.mapData[21][7] = 5;
@@ -26,7 +28,9 @@ export function createRoom(scene) {
     let inRange = scene.mapData[tileY][tileX] === 5
     if (!inRange) return
     player.setPlayerDir(scene, 'up')
+    audio.playSound('systemSign', scene);
     if (!scene.closeOpenSign.open) {
+      scene.isTimePaused = false
       scene.closeOpenSign.setFrame(1)
       scene.closeOpenSign.open = true
     } else {
@@ -59,62 +63,53 @@ export function createPauseIcon(scene) {
     duration: 400,
     ease: 'Bounce.Out',
   });
+  const moneyBorder = scene.add.sprite(0, 5, 'moneyBorder');
 
   scene.money = scene.add.sprite(0, 0, 'moneyIdle');
-
   scene.moneyValue = scene.add.text(0, 15, `${SaveGame.loadGameValue('money')}`, {
     fontFamily: 'DefaultFont',
     fontSize: '18px',
     stroke: '#3a3a50',
     strokeThickness: 4,
-    fill: '#ffffff',
+    fill: '#9ACD32',
     padding: { x: 0, y: 0 },
-    align: 'right' // sets internal line alignment
+    align: 'right'
   })
-  .setOrigin(0, -1); // right-align text origin (x=1)
-  
+  .setOrigin(0, -1); 
   scene.time.delayedCall(0, () => {
     const spacing = 4;
-  
-    // Fixed container X (aligned to right side of screen)
-    const containerX = scene.calendar.x+scene.calendar.width+90   //scene.scale.width - padding;
-  
-    // Position text to the right of the icon
-    scene.moneyValue.setPosition(scene.money.width, -scene.money.height / 2 + 1);
-  
-    // Add both to a container
-    scene.moneyUI = scene.add.container(containerX, 10, [scene.money, scene.moneyValue])
+    const containerX = scene.calendar.x+scene.calendar.width+125
+    scene.moneyValue.setPosition(scene.money.width-30, -scene.money.height / 2 + 7);
+    scene.money.setPosition(-25,6);
+    moneyBorder.setPosition(scene.money.width, 8);
+    scene.moneyUI = scene.add.container(containerX, -scene.money.height, [moneyBorder, scene.money, scene.moneyValue])
       .setDepth(1000)
       .setSize(scene.money.width + scene.moneyValue.width + spacing, scene.money.height);
+    scene.tweens.add({
+        targets: scene.moneyUI,
+        y: 10,
+        duration: 400,
+        ease: 'Bounce.Out',
+      });
+
   });
   
 
-
-
-
 }
-
-
 
 export function updateMoneyValueAnimated(scene, newValue, duration = 1500) {
   const text = scene.moneyValue;
   const currentValue = parseInt(text.text);
-  const targetValue = parseInt(newValue);
-  SaveGame.saveGameValue('money', newValue);
-
+  const targetValue = Phaser.Math.Clamp(parseInt(newValue), 0, 99_999_999);
+  SaveGame.saveGameValue('money', targetValue);
+  audio.playSound('systemMoney', scene);
   if (currentValue === targetValue) return;
-
-  // Cancel previous tween if any
   if (scene.moneyTween && scene.moneyTween.isPlaying()) {
     scene.moneyTween.stop();
   } else {
-    // Only play animation if there’s no tween already playing
     scene.money.play('moneyAni');
   }
-
   const obj = { value: currentValue };
-
-  // Create new tween and store it
   scene.moneyTween = scene.tweens.add({
     targets: obj,
     value: targetValue,
@@ -131,10 +126,6 @@ export function updateMoneyValueAnimated(scene, newValue, duration = 1500) {
     }
   });
 }
-
-
-
-
 
 export function entityPath(scene, entity, y, x, finalDir) {
   const tileX = Math.floor(x);
@@ -368,7 +359,7 @@ export function createClock(scene) {
   };
   scene.timeElapsed = 0;
   scene.dayLength = 1440;
-  scene.timeSpeed = 10;         // 1 = real time; 2 = twice as fast
+  scene.timeSpeed = 1;         // 1 = real time; 2 = twice as fast
   scene.isTimePaused = false;
   scene.clock = scene.add.sprite(0, 0, 'dayNight')
     .setDepth(1000)
@@ -447,7 +438,13 @@ export function dayNightCycle(scene, delta) {
     };
     scene.clock.setFrame(phaseToFrame[currentPhase]);
     scene.clock.y = -29;
-
+    scene.calendar.y = -100;
+    scene.tweens.add({
+      targets: scene.calendar,
+      y: 54,
+      duration: 400,
+      ease: 'Bounce.Out',
+    });
 
   }
 }
