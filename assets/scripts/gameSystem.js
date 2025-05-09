@@ -2,6 +2,7 @@
 import * as audio from './audio.js';
 import * as drinks from './drinks.js';
 import * as player from './player.js';
+import * as SaveGame from './SaveGame.js';
 
 export function createRoom(scene) {
   scene.roomBack = scene.add.sprite(scene.cameras.main.centerX, scene.cameras.main.centerY, 'room_background')
@@ -9,22 +10,22 @@ export function createRoom(scene) {
     .setInteractive()
   scene.roomTop = scene.add.sprite(scene.cameras.main.centerX, scene.cameras.main.centerY, 'room_top')
     .setDepth(100)
-  scene.roomTopEx = scene.add.sprite((scene.cameras.main.centerX-(32*2))-1, scene.cameras.main.centerY+(32*2), 'room_top_ex')
+  scene.roomTopEx = scene.add.sprite((scene.cameras.main.centerX - (32 * 2)) - 1, scene.cameras.main.centerY + (32 * 2), 'room_top_ex')
     .setDepth(85)
-   
+
 
 
   scene.mapData[21][7] = 5;
   scene.closeOpenSign = scene.add.sprite(0, 0, 'closeOpen')
-  .setPosition(7 * scene.TILE_SIZE + 16, 19 * scene.TILE_SIZE + 16)
-  .setInteractive()
+    .setPosition(7 * scene.TILE_SIZE + 16, 19 * scene.TILE_SIZE + 16)
+    .setInteractive()
   scene.closeOpenSign.open = false
   scene.closeOpenSign.on('pointerdown', (pointer) => {
     let tileX = Math.floor(scene.player.x / scene.TILE_SIZE)
-    let tileY = Math.floor((scene.player.y + scene.player.height / 2) / scene.TILE_SIZE)-1
+    let tileY = Math.floor((scene.player.y + scene.player.height / 2) / scene.TILE_SIZE) - 1
     let inRange = scene.mapData[tileY][tileX] === 5
     if (!inRange) return
-    player.setPlayerDir(scene,'up')
+    player.setPlayerDir(scene, 'up')
     if (!scene.closeOpenSign.open) {
       scene.closeOpenSign.setFrame(1)
       scene.closeOpenSign.open = true
@@ -35,19 +36,119 @@ export function createRoom(scene) {
   });
 }
 
-export function entityPath(scene,entity,y,x,finalDir){
+export function createCalendar(scene) {
+  scene.topUIBorder = scene.add.sprite(scene.cameras.main.centerX, 0, 'topUIBorder')
+    .setDepth(999)
+  scene.topUIBorder.y = -scene.topUIBorder.height
+  scene.tweens.add({
+    targets: scene.topUIBorder,
+    y: 5,
+    duration: 400,
+    ease: 'Bounce.Out',
+  });
+
+}
+
+export function createPauseIcon(scene) {
+  scene.pauseIcon = scene.add.sprite(0, 0, 'pauseIcon')
+    .setDepth(1000)
+  scene.pauseIcon.setPosition(scene.scale.width - scene.pauseIcon.width + 10, -scene.pauseIcon.height)
+  scene.tweens.add({
+    targets: scene.pauseIcon,
+    y: 25,
+    duration: 400,
+    ease: 'Bounce.Out',
+  });
+
+  scene.money = scene.add.sprite(0, 0, 'moneyIdle');
+
+  scene.moneyValue = scene.add.text(0, 15, `${SaveGame.loadGameValue('money')}`, {
+    fontFamily: 'DefaultFont',
+    fontSize: '18px',
+    stroke: '#3a3a50',
+    strokeThickness: 4,
+    fill: '#ffffff',
+    padding: { x: 0, y: 0 },
+    align: 'right' // sets internal line alignment
+  })
+  .setOrigin(0, -1); // right-align text origin (x=1)
+  
+  scene.time.delayedCall(0, () => {
+    const spacing = 4;
+  
+    // Fixed container X (aligned to right side of screen)
+    const containerX = scene.calendar.x+scene.calendar.width+90   //scene.scale.width - padding;
+  
+    // Position text to the right of the icon
+    scene.moneyValue.setPosition(scene.money.width, -scene.money.height / 2 + 1);
+  
+    // Add both to a container
+    scene.moneyUI = scene.add.container(containerX, 10, [scene.money, scene.moneyValue])
+      .setDepth(1000)
+      .setSize(scene.money.width + scene.moneyValue.width + spacing, scene.money.height);
+  });
+  
+
+
+
+
+}
+
+
+
+export function updateMoneyValueAnimated(scene, newValue, duration = 1500) {
+  const text = scene.moneyValue;
+  const currentValue = parseInt(text.text);
+  const targetValue = parseInt(newValue);
+  SaveGame.saveGameValue('money', newValue);
+
+  if (currentValue === targetValue) return;
+
+  // Cancel previous tween if any
+  if (scene.moneyTween && scene.moneyTween.isPlaying()) {
+    scene.moneyTween.stop();
+  } else {
+    // Only play animation if there’s no tween already playing
+    scene.money.play('moneyAni');
+  }
+
+  const obj = { value: currentValue };
+
+  // Create new tween and store it
+  scene.moneyTween = scene.tweens.add({
+    targets: obj,
+    value: targetValue,
+    duration: duration,
+    ease: 'Linear',
+    onUpdate: () => {
+      const val = Math.floor(obj.value);
+      text.setText(val);
+    },
+    onComplete: () => {
+      scene.money.stop();
+      scene.money.setTexture('moneyIdle');
+      text.setText(targetValue);
+    }
+  });
+}
+
+
+
+
+
+export function entityPath(scene, entity, y, x, finalDir) {
   const tileX = Math.floor(x);
   const tileY = Math.floor(y);
   const entityTileX = Math.floor(entity.x / scene.TILE_SIZE);
   const entityTileY = Math.floor(entity.y / scene.TILE_SIZE);
   entity.easystar = new EasyStar.js();
   entity.easystar.setGrid(scene.mapData);
-  const allTileIndices = [0,1,2,3,4,5,6,7,8,9,10]; 
+  const allTileIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   let unacceptable
   if (entity === scene.player) {
-    unacceptable = [1,2];
+    unacceptable = [1, 2];
   } else {
-    unacceptable = [1,3];
+    unacceptable = [1, 3];
   }
   const acceptable = allTileIndices.filter(t => !unacceptable.includes(t));
   entity.easystar.setAcceptableTiles(acceptable);
@@ -56,12 +157,12 @@ export function entityPath(scene,entity,y,x,finalDir){
       return
     } else {
       if (scene.gameActive && entity === scene.player) {
-      updateEnergy(scene, (scene.energy[0] - 1))
-      scene.newPos.x = Math.floor(tileX * 32 + 16), scene.newPos.y = Math.floor(tileY * 32 + 16);
-      scene.newPos.setVisible(true)
+        updateEnergy(scene, (scene.energy[0] - 1))
+        scene.newPos.x = Math.floor(tileX * 32 + 16), scene.newPos.y = Math.floor(tileY * 32 + 16);
+        scene.newPos.setVisible(true)
       }
       entity.activePath = true
-      moveAlongPath(scene,path,entity,finalDir);
+      moveAlongPath(scene, path, entity, finalDir);
     }
   });
   entity.easystar.calculate();
@@ -98,7 +199,7 @@ export function moveAlongPath(scene, path, entity, finalDir) {
       }
       return;
     }
-    audio.playSound('playerStep',scene)
+    audio.playSound('playerStep', scene)
     const nextTile = path[i];
     const nextX = nextTile.x * scene.TILE_SIZE + scene.TILE_SIZE / 2;
     const nextY = nextTile.y * scene.TILE_SIZE + 16 / 2;
@@ -175,7 +276,7 @@ export function createEnergyBar(scene) {
   scene.energy = [100, 100];
   scene.energyBar = scene.add.sprite(0, 0, 'energyBar').setOrigin(0.5, 1).setDepth(1000);
   scene.energyBar.x = 30//scene.scale.width - scene.energyBar.width / 2 - 20;
-  scene.energyBar.y = scene.scale.height - 10//scene.scale.height - 160;
+  scene.energyBar.y = scene.scale.height - 20//scene.scale.height - 160;
   scene.energyFill = scene.add.sprite(0, 0, 'energyFill').setOrigin(0.5, 1).setDepth(1000);
   scene.energyFill.x = scene.energyBar.x;
   scene.energyFill.y = scene.energyBar.y - (111 - 105) / 2;
@@ -197,7 +298,7 @@ export function createEnergyBar(scene) {
     fill: '#ffffff',
     padding: { x: 0, y: 0 }
   }).setDepth(1002).setVisible(false);
-  scene.energyText.setOrigin(0.5, 0.5); 
+  scene.energyText.setOrigin(0.5, 0.5);
 
   scene.energyBorder = scene.add.sprite(0, 0, 'energyBorder')
     .setDepth(1000)
@@ -227,10 +328,6 @@ export function createEnergyBar(scene) {
     scene.energyBorder.setVisible(false);
     scene.energyText.setVisible(false);
   });
-
-  scene.calendar = scene.add.sprite(0, 0, 'calendar').setOrigin(0.5, 1).setDepth(1000);
-  scene.calendar.x = 50
-  scene.calendar.y = 55
 }
 
 export function getEnergyColor(current, max) {
@@ -239,6 +336,21 @@ export function getEnergyColor(current, max) {
   else if (percent > 34) return 1;
   else if (percent > 19) return 2;
   else return 3;
+}
+
+export function showClock(scene, state) {
+  if (state) {
+    scene.calendar.setVisible(true);
+    scene.calendar.y = -100; // Reset starting Y
+    scene.tweens.add({
+      targets: scene.calendar,
+      y: 54,
+      duration: 400,
+      ease: 'Bounce.Out',
+    });
+  } else {
+    scene.calendar.setVisible(false);
+  }
 }
 
 export function createClock(scene) {
@@ -258,9 +370,24 @@ export function createClock(scene) {
   scene.dayLength = 1440;
   scene.timeSpeed = 10;         // 1 = real time; 2 = twice as fast
   scene.isTimePaused = false;
-  scene.clock = scene.add.sprite(Math.floor(scene.scale.width / 2), 25, 'dayNight')
-  .setDepth(1000)
-  .setVisible(false)
+  scene.clock = scene.add.sprite(0, 0, 'dayNight')
+    .setDepth(1000)
+
+  const calendar = scene.add.sprite(0, 0, 'calendar');
+  const dayText = scene.add.text(0, 7, 'Day 1', {
+    fontFamily: 'DefaultFont',
+    fontSize: '18px',
+    stroke: '#3a3a50',
+    strokeThickness: 4,
+    fill: '#ffffff',
+    padding: { x: 0, y: 0 }
+  }).setOrigin(0.5, 0.5);
+
+  scene.calendar = scene.add.container(70, 0, [scene.clock, calendar, dayText])
+    .setDepth(1000)
+    .setVisible(false)
+
+
 }
 
 export function dayNightCycle(scene, delta) {
@@ -319,13 +446,9 @@ export function dayNightCycle(scene, delta) {
       evening: 3,
     };
     scene.clock.setFrame(phaseToFrame[currentPhase]);
-    scene.clock.y = -scene.clock.height;
-    scene.tweens.add({
-      targets: scene.clock,
-      y: 25,
-      duration: 400,
-      ease: 'Bounce.Out',
-    });
+    scene.clock.y = -29;
+
+
   }
 }
 
@@ -343,12 +466,12 @@ export function flashFill(sprite, color = 0xffff00, flashCount = 2, flashDuratio
     sprite.setTintFill(color);
     scene.tweens.add({
       targets: sprite,
-      alpha: 0.4,         
+      alpha: 0.4,
       duration: flashDuration / 2,
-      yoyo: true,        
+      yoyo: true,
       ease: 'Sine.easeInOut',
       onYoyo: () => {
-        sprite.clearTint(); 
+        sprite.clearTint();
       },
       onComplete: () => {
         count++;
@@ -366,55 +489,48 @@ export function flashFill(sprite, color = 0xffff00, flashCount = 2, flashDuratio
 export function startCooldown(scene, sprite, duration = 2000) {
   let elapsed = 0;
   const interval = 16;
-  const overlay = scene.add.graphics();
-  overlay.setDepth(sprite.depth+1)
-  sprite.cooldownOverlay = overlay;
-  sprite.alpha = 0.5;
+  const totalFrames = 10;
+  if (!sprite.cooldownOverlay) {
+    sprite.cooldownOverlay = scene.add.sprite(sprite.x, sprite.y, 'coolDownA');
+    sprite.cooldownOverlay.setOrigin(0.5);
+    sprite.cooldownOverlay.setDepth(sprite.depth - 1); 
+  }
+  sprite.cooldownOverlay.setVisible(true);
+  sprite.cooldownOverlay.setFrame(0);
+//  sprite.alpha = 0.5;
   const event = scene.time.addEvent({
     delay: interval,
     repeat: (duration / interval) - 1,
     callback: () => {
       elapsed += interval;
       const progress = Phaser.Math.Clamp(elapsed / duration, 0, 1);
-      const angle = Phaser.Math.Linear(360, 0, progress);
-      overlay.clear();
-      overlay.lineStyle(); 
-      overlay.fillStyle(); 
-      overlay.fillStyle(0x7FFFD4,0.35); 
-      overlay.lineStyle(2,0x2F4F4F,1); 
-      overlay.slice(
-        sprite.x,
-        sprite.y,
-        sprite.width / 2,
-        Phaser.Math.DegToRad(-90),
-        Phaser.Math.DegToRad(angle - 90),
-        false
-      );
-      overlay.fillPath();
-      overlay.strokePath();
+      const frameIndex = Math.min(Math.floor(progress * 10), totalFrames - 1);
+      sprite.cooldownOverlay.setFrame(frameIndex);
+      sprite.cooldownOverlay.setPosition(sprite.x, sprite.y);
     },
     callbackScope: scene,
   });
   scene.time.delayedCall(duration + 50, () => {
     if (sprite.cooldownOverlay) {
-      sprite.cooldownOverlay.destroy(); 
-      sprite.cooldownOverlay = null;
+      //sprite.cooldownOverlay.setVisible(false);
+      sprite.cooldownOverlay.destroy()
+      sprite.cooldownOverlay = null
     }
-    console.log(sprite.type)
+   // console.log(sprite.type);
     if (sprite.type !== null) {
-     callSpecialFunction(scene,sprite.type)
-    } 
+      callSpecialFunction(scene, sprite.type);
+    }
     sprite.alpha = 1;
     flashFill(sprite, 0xffffff, 2, 100);
     scene.time.delayedCall(200, () => {
       sprite.onCoolDown = false;
-    });    
+    });
   });
 }
 
-export function callSpecialFunction(scene,type){
+export function callSpecialFunction(scene, type) {
   if (type === "drink") {
-  drinks.setCoffeeTableSprite(scene)
+    drinks.setCoffeeTableSprite(scene)
   }
 }
 

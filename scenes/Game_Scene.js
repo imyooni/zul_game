@@ -50,8 +50,12 @@ export default class Game_Scene extends Phaser.Scene {
       });
     });
 
+    this.input.keyboard.on('keydown-M', () => {
+      let value = SaveGame.loadGameValue('money')+Math.floor(Math.random() * 500)
+      gameSystem.updateMoneyValueAnimated(this,value);
+    });
 
-
+ 
 
 
     this.time.delayedCall(200, () => {
@@ -248,6 +252,9 @@ function createTitleCommands(scene) {
 
 
 function setupNewGame(scene) {
+
+  SaveGame.saveGameValue('money', 0);
+
   scene.tweens.add({
     targets: scene.languageIcon,
     x: -scene.languageIcon.width,
@@ -324,8 +331,8 @@ function createLoadScreen(scene) {
     loop: true,
   });
   scene.time.delayedCall(2000, () => {
-    scene.clock.setVisible(true)
     gameSystem.createEnergyBar(scene)
+    clearTitleSprites(scene)
     scene.coffeeIcon.setVisible(true)
       scene.time.delayedCall(2000, () => {
         gameSystem.skipToTime(scene, 9)
@@ -338,6 +345,10 @@ function createLoadScreen(scene) {
             duration: 300,
             ease: 'linear',
             onComplete: () => {
+             // gameSystem.createCalendar(scene)
+              
+              gameSystem.showClock(scene, true)
+              gameSystem.createPauseIcon(scene)
               gameSystem.entityPath(scene,scene.player,9,9,'down')
               scene.time.delayedCall(500, () => {
                 scene.gameActive = true
@@ -355,6 +366,19 @@ function createLoadScreen(scene) {
   })
 }
 
+function clearTitleSprites(scene){
+ 
+  scene.languageIcon.destroy()
+  scene.gameLogo.destroy()
+  scene.titleButtons.forEach(({ button, buttonText }) => {
+      button.destroy()
+      buttonText.destroy()
+  });
+  scene.socialButtons.forEach((key, index) => {
+    scene.socialButtons[index].destroy()
+  });
+
+}
 
 function updateTitleTexts(scene) {
   scene.titleButtons.forEach(({ key, buttonText }) => {

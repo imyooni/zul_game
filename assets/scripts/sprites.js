@@ -34,9 +34,15 @@ export function loadGameSprites(scene){
   scene.load.spritesheet('player', 'assets/sprites/player.png', {frameWidth: 32, frameHeight: 48});
   scene.load.spritesheet('zul', 'assets/sprites/zul.png', {frameWidth: 32, frameHeight: 48});
 
+  scene.load.spritesheet('coolDownA', 'assets/sprites/coolDownA.png', {frameWidth: 32, frameHeight: 32});
+  scene.load.image('moneyIdle', 'assets/sprites/moneyIdle.png');
+  scene.load.spritesheet('money', 'assets/sprites/money.png', {frameWidth: 28, frameHeight: 46});
+
   scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
   scene.load.image('energyBar', 'assets/sprites/energyBar.png');
   scene.load.image('calendar', 'assets/sprites/calendar.png');
+  scene.load.image('pauseIcon', 'assets/sprites/pauseIcon.png');
+  scene.load.image('topUIBorder', 'assets/sprites/topUIBorder.png');
   scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
   
   // npcs
@@ -47,15 +53,23 @@ export function loadGameSprites(scene){
   }
 }
 
-export function load_sprites(scene) {
-
-  
-}
-
 export function load_animations(scene){
   createDirectionalAnims(scene, 'player');
   createDirectionalAnims(scene, 'zul');
   createDirectionalAnims(scene, 'npc1');
+
+  scene.anims.create({
+    key: 'moneyAni',
+    frames: [
+     // ...Array(15).fill(4).map(f => ({ key: 'money', frame: f })),
+      ...scene.anims.generateFrameNumbers('money', { start: 0, end: 4 })
+    ],
+    frameRate: 9,
+    repeat: -1
+  });
+  
+  
+  
 }
 
 export function createDirectionalAnims(scene, spriteKey, animKeyPrefix = spriteKey) {
