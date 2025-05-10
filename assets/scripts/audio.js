@@ -8,6 +8,7 @@ export function load_audio(scene) {
     // SFX
     scene.load.audio('zul', 'assets/audio/SFX/zul.ogg');
     scene.load.audio('coffee', 'assets/audio/SFX/coffee.ogg');
+    scene.load.audio('doorBell', 'assets/audio/SFX/doorBell.ogg');
     scene.load.audio('playerStep', 'assets/audio/SFX/playerStep.ogg');
     scene.load.audio('systemNewGame', 'assets/audio/SFX/systemNewGame.ogg');
     scene.load.audio('systemOk', 'assets/audio/SFX/systemOk.ogg');
@@ -20,6 +21,7 @@ export function load_audio(scene) {
 const sfxVolumes = {
     zul: 0.5,
     coffee: 1,
+    doorBell: 1,
     playerStep: 0.5,
     systemMoney: 0.9,
     systemNewGame: 1,

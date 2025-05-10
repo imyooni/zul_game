@@ -3,6 +3,7 @@ import * as audio from './audio.js';
 import * as drinks from './drinks.js';
 import * as player from './player.js';
 import * as SaveGame from './SaveGame.js';
+import * as scene_room from './scene_room.js';
 
 export function createRoom(scene) {
   scene.roomBack = scene.add.sprite(scene.cameras.main.centerX, scene.cameras.main.centerY, 'room_background')
@@ -27,30 +28,17 @@ export function createRoom(scene) {
     let tileY = Math.floor((scene.player.y + scene.player.height / 2) / scene.TILE_SIZE) - 1
     let inRange = scene.mapData[tileY][tileX] === 5
     if (!inRange) return
+    if (scene.closeOpenSign.open) return
+    scene.dayPhase = 'active'
     player.setPlayerDir(scene, 'up')
     audio.playSound('systemSign', scene);
-    if (!scene.closeOpenSign.open) {
-      scene.isTimePaused = false
-      scene.closeOpenSign.setFrame(1)
-      scene.closeOpenSign.open = true
-    } else {
-      scene.closeOpenSign.setFrame(0)
-      scene.closeOpenSign.open = false
-    }
+    scene.isTimePaused = false
+    scene.closeOpenSign.setFrame(1)
+    scene.closeOpenSign.open = true
+    scene.time.delayedCall(100, () => {
+      scene_room.generateClient(scene)
+    })
   });
-}
-
-export function createCalendar(scene) {
-  scene.topUIBorder = scene.add.sprite(scene.cameras.main.centerX, 0, 'topUIBorder')
-    .setDepth(999)
-  scene.topUIBorder.y = -scene.topUIBorder.height
-  scene.tweens.add({
-    targets: scene.topUIBorder,
-    y: 5,
-    duration: 400,
-    ease: 'Bounce.Out',
-  });
-
 }
 
 export function createPauseIcon(scene) {
@@ -75,25 +63,25 @@ export function createPauseIcon(scene) {
     padding: { x: 0, y: 0 },
     align: 'right'
   })
-  .setOrigin(0, -1); 
+    .setOrigin(0, -1);
   scene.time.delayedCall(0, () => {
     const spacing = 4;
-    const containerX = scene.calendar.x+scene.calendar.width+125
-    scene.moneyValue.setPosition(scene.money.width-30, -scene.money.height / 2 + 7);
-    scene.money.setPosition(-25,6);
+    const containerX = scene.calendar.x + scene.calendar.width + 125
+    scene.moneyValue.setPosition(scene.money.width - 30, -scene.money.height / 2 + 7);
+    scene.money.setPosition(-25, 6);
     moneyBorder.setPosition(scene.money.width, 8);
     scene.moneyUI = scene.add.container(containerX, -scene.money.height, [moneyBorder, scene.money, scene.moneyValue])
       .setDepth(1000)
       .setSize(scene.money.width + scene.moneyValue.width + spacing, scene.money.height);
     scene.tweens.add({
-        targets: scene.moneyUI,
-        y: 10,
-        duration: 400,
-        ease: 'Bounce.Out',
-      });
+      targets: scene.moneyUI,
+      y: 10,
+      duration: 400,
+      ease: 'Bounce.Out',
+    });
 
   });
-  
+
 
 }
 
@@ -159,6 +147,24 @@ export function entityPath(scene, entity, y, x, finalDir) {
   entity.easystar.calculate();
 }
 
+export function setEntityPos(scene, entity, y, x) {
+  entity.setPosition(x * scene.TILE_SIZE + 16, y * scene.TILE_SIZE + 16 / 2)
+}
+
+export function changeEntityDir(entity, d) {
+  let dirs = [1, 4, 7, 10]
+  if (d === "down") {
+    entity.direction = 0
+  } else if (d === "left") {
+    entity.direction = 1
+  } else if (d === "right") {
+    entity.direction = 2
+  } else if (d === "up") {
+    entity.direction = 3
+  }
+  entity.setFrame(dirs[entity.direction])
+}
+
 export function moveAlongPath(scene, path, entity, finalDir) {
   if (path.length <= 1) {
     entity.activePath = false
@@ -173,17 +179,12 @@ export function moveAlongPath(scene, path, entity, finalDir) {
   function moveNext() {
     if (i >= path.length) {
       entity.anims.stop();
-      let dirs = [1, 4, 7, 10]
-      if (finalDir === "down") {
-        entity.direction = 0
-      } else if (finalDir === "left") {
-        entity.direction = 1
-      } else if (finalDir === "right") {
-        entity.direction = 2
-      } else if (finalDir === "up") {
-        entity.direction = 3
+      if (finalDir) {
+       changeEntityDir(entity, finalDir) 
+      } else {
+       let dirs = ["down", "left", "right", "up"]
+       changeEntityDir(entity, dirs[entity.direction]) 
       }
-      entity.setFrame(dirs[entity.direction])
       entity.activePath = false
       if (entity === scene.player && scene.newPos) {
         scene.newPos.setVisible(false)
@@ -490,11 +491,11 @@ export function startCooldown(scene, sprite, duration = 2000) {
   if (!sprite.cooldownOverlay) {
     sprite.cooldownOverlay = scene.add.sprite(sprite.x, sprite.y, 'coolDownA');
     sprite.cooldownOverlay.setOrigin(0.5);
-    sprite.cooldownOverlay.setDepth(sprite.depth - 1); 
+    sprite.cooldownOverlay.setDepth(sprite.depth - 1);
   }
   sprite.cooldownOverlay.setVisible(true);
   sprite.cooldownOverlay.setFrame(0);
-//  sprite.alpha = 0.5;
+  //  sprite.alpha = 0.5;
   const event = scene.time.addEvent({
     delay: interval,
     repeat: (duration / interval) - 1,
@@ -513,7 +514,7 @@ export function startCooldown(scene, sprite, duration = 2000) {
       sprite.cooldownOverlay.destroy()
       sprite.cooldownOverlay = null
     }
-   // console.log(sprite.type);
+    // console.log(sprite.type);
     if (sprite.type !== null) {
       callSpecialFunction(scene, sprite.type);
     }

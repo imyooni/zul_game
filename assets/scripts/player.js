@@ -28,11 +28,6 @@ export function createPlayer(scene) {
   });
 }
 
-
-export function setPlayerPos(scene,y,x){
-  scene.player.setPosition(x * scene.TILE_SIZE + 16, y * scene.TILE_SIZE + 16 / 2)
-}
-
 export function playerJump(scene){
   scene.player.pauseMovement = true
   scene.tweens.add({

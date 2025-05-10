@@ -19,6 +19,7 @@ export default class Game_Scene extends Phaser.Scene {
   }
 
   create() {
+    this.clients = []
     this.gameActive = false
     sprites.load_animations(this);
     tileMap.setTilemap(this)
@@ -26,7 +27,7 @@ export default class Game_Scene extends Phaser.Scene {
     gameSystem.createRoom(this)
     drinks.createDrinkTable(this)
     player.createPlayer(this)
-    player.setPlayerPos(this, 6, 8)
+    gameSystem.setEntityPos(this,this.player,6,8)
 
     zul.createZul(this)
     zul.setZulPos(this, 6, 8)
@@ -59,7 +60,7 @@ export default class Game_Scene extends Phaser.Scene {
 
 
     this.time.delayedCall(200, () => {
-      carsInit(this)
+      scene_room.carsInit(this)
       startBgm(this)
       this.time.delayedCall(700, () => {
         createSocialButtons(this)
@@ -253,6 +254,7 @@ function createTitleCommands(scene) {
 
 function setupNewGame(scene) {
 
+  scene.dayPhase = 'waiting'
   SaveGame.saveGameValue('money', 0);
 
   scene.tweens.add({
@@ -337,6 +339,8 @@ const loadingText = scene.add.text(0, 0, `${lang.Text('loading')}`, {
         gameSystem.skipToTime(scene, 9)
         scene.isTimePaused = true
         audio.playSound('bgm001',scene,true)
+        gameSystem.setEntityPos(scene,scene.zul,8,3)
+        gameSystem.changeEntityDir(scene.zul, 'up')
         scene.time.delayedCall(10, () => {
           scene.tweens.add({
             targets: container,
@@ -350,7 +354,7 @@ const loadingText = scene.add.text(0, 0, `${lang.Text('loading')}`, {
               scene.time.delayedCall(500, () => {
                 scene.gameActive = true
                 scene.mapData[7][9] = 2;
-                gameSystem.entityPath(scene,scene.zul,8,6,'up')
+              //  gameSystem.entityPath(scene,scene.zul,8,6,'up')
               })
             }
           });
@@ -382,13 +386,6 @@ function updateTitleTexts(scene) {
   });
 }
 
-function carsInit(scene) {
-  scene_room.createCars(scene)
-  scene.time.delayedCall(1000, () => {
-    scene_room.scheduleCarSpawn(scene, 'car1');
-    scene_room.scheduleCarSpawn(scene, 'car2');
-  });
-}
 
 function startBgm(scene) {
   scene.bgm = audio.playSound('bgm000', scene, true)

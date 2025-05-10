@@ -35,6 +35,7 @@ export function loadGameSprites(scene){
   scene.load.spritesheet('zul', 'assets/sprites/zul.png', {frameWidth: 32, frameHeight: 48});
 
   scene.load.spritesheet('coolDownA', 'assets/sprites/coolDownA.png', {frameWidth: 32, frameHeight: 32});
+  scene.load.spritesheet('clientStatus', 'assets/sprites/clientStatus.png', {frameWidth: 32, frameHeight: 32});
   scene.load.image('moneyBorder', 'assets/sprites/moneyBorder.png');
   scene.load.image('moneyIdle', 'assets/sprites/moneyIdle.png');
   scene.load.spritesheet('money', 'assets/sprites/money.png', {frameWidth: 28, frameHeight: 46});
