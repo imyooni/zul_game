@@ -17,8 +17,8 @@ export function createRoom(scene) {
   scene.tips = scene.add.sprite(7 * scene.TILE_SIZE + scene.TILE_SIZE / 2, 8 * scene.TILE_SIZE - 1 / 2, 'tips')
     .setDepth(8)
 
-
-  scene.mapData[21][7] = 5;
+  scene.mapData[19][4] = 6; // clients
+  scene.mapData[21][7] = 5; // open/close sign
   scene.closeOpenSign = scene.add.sprite(0, 0, 'closeOpen')
     .setPosition(7 * scene.TILE_SIZE + 16, 19 * scene.TILE_SIZE + 16)
     .setInteractive()

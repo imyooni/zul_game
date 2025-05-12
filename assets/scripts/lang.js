@@ -11,6 +11,12 @@ export function Text(key){
     exit: ["Exit", "종료"],
     bgm: ["Music", "음악"],
     sfx: ["Sound Effects", "효과음"],
+    concert: ["Zulja's Concert", "줄자의 콘서트"],
+    bronze: ["Bronze","브론즈"],
+    silver: ["Silver","실버"],
+    gold: ["Gold","골드"],
+    platinum: ["Platinum","플래티넘"],
+    diamond: ["Diamond","다이아몬드"],
    } 
   return list[key][languages.indexOf(SaveGame.loadGameValue('language'))] 
 } 
