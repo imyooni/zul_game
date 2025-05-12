@@ -360,7 +360,7 @@ export function createClock(scene) {
   };
   scene.timeElapsed = 0;
   scene.dayLength = 1440;
-  scene.timeSpeed = 1;         // 1 = real time; 2 = twice as fast
+  scene.timeSpeed = 3;         // 1 = real time; 2 = twice as fast
   scene.isTimePaused = false;
   scene.clock = scene.add.sprite(0, 0, 'dayNight')
     .setDepth(1000)

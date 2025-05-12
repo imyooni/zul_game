@@ -12,6 +12,7 @@ export function Text(key){
     bgm: ["Music", "음악"],
     sfx: ["Sound Effects", "효과음"],
     concert: ["Zulja's Concert", "줄자의 콘서트"],
+    basic: ["Basic","기본"],
     bronze: ["Bronze","브론즈"],
     silver: ["Silver","실버"],
     gold: ["Gold","골드"],

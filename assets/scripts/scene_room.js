@@ -61,21 +61,23 @@ export function showTickets(scene) {
 }
 
 function generateTicket(scene, ticketCount, i) {
-  let Colors = ['#cd7f32', '#c0c0c0', '#ffd700', '#f1e3ff', '#b9f2ff']
+  let Colors = ['#DC143C','#cd7f32', '#c0c0c0', '#ffd700', '#f1e3ff', '#b9f2ff']
   const ticketSpacing = 55;
   const totalHeight = (ticketCount - 1) * ticketSpacing;
   const centerX = scene.cameras.main.centerX;
   const centerY = scene.cameras.main.centerY;
-  let ID = Phaser.Math.Between(0, 4)
-  let types = ["bronze", "silver", "gold", "platinum", "diamond"]
-  let fontS 
+  //let ID = Phaser.Math.Between(0, 4)
+  let ticketID = randomTicketType(scene, i)
+  
+  let types = ["basic", "bronze", "silver", "gold", "platinum", "diamond"]
+  let fontS
   if (SaveGame.loadGameValue('language') === 'kor') {
-   fontS = 13
+    fontS = 13
   } else {
-   fontS = 12
+    fontS = 12
   }
   const offsetY = -totalHeight / 2 + i * ticketSpacing;
-  const ticketBase = scene.add.sprite(0, 0, 'tickets', ID)
+  const ticketBase = scene.add.sprite(0, 0, 'tickets', types.indexOf(ticketID.type))
     .setInteractive();
   const ticketTitle = scene.add.text(0, 0, `${lang.Text('concert')}`, {
     fontFamily: 'DefaultFont',
@@ -87,19 +89,19 @@ function generateTicket(scene, ticketCount, i) {
     align: 'right'
   })
   ticketTitle.setPosition(-125, -27)
-  const ticketType = scene.add.text(0, 0, `${lang.Text(types[ID])}`, {
+  const ticketType = scene.add.text(0, 0, `${lang.Text(ticketID.type)}`, {
     fontFamily: 'DefaultFont',
     fontSize: `${fontS}px`,
     stroke: '#3a3a50',
     strokeThickness: 4,
-    color: Colors[ID],
+    color: Colors[types.indexOf(ticketID.type)],
     padding: { top: 8, bottom: 4 },
     align: 'right'
   })
   ticketType.setPosition(0, -3)
-  const probability = Phaser.Math.Between(1, 100);
-  const procColors = ['#FF0000', '#FF8C00', '#FFFF00', '#ADFF2F'];
-  const thresholds = [25, 50, 75];
+  const probability = ticketID.per
+  const procColors = ['#FF0000', '#FF8C00', '#FFFF00', '#ADFF2F', '#6495ED'];
+  const thresholds = [25, 50, 75, 99];
 
   const colorIndex = thresholds.filter(t => probability > t).length;
   const color = procColors[colorIndex];
@@ -114,8 +116,8 @@ function generateTicket(scene, ticketCount, i) {
     align: 'center'
   });
 
-procText.setOrigin(0.5, 0.5);
-procText.setPosition(98, -3); // Adjust these to match your circle's exact center
+  procText.setOrigin(0.5, 0.5);
+  procText.setPosition(98, -3); // Adjust these to match your circle's exact center
 
   const ticketContainer = scene.add.container(-100, centerY + offsetY, [ticketBase, ticketTitle, ticketType, procText])
     .setDepth(5000)
@@ -125,7 +127,7 @@ procText.setPosition(98, -3); // Adjust these to match your circle's exact cente
     duration: 800,
     ease: 'Back.Out',
     onComplete: () => {
-        scene.tweens.add({
+      scene.tweens.add({
         targets: ticketContainer,
         y: ticketContainer.y - 3,
         duration: 800,
@@ -136,6 +138,36 @@ procText.setPosition(98, -3); // Adjust these to match your circle's exact cente
     }
   });
   return ticketContainer
+}
+
+function randomTicketType(scene, i) {
+  let ticketList = [];
+  let list = {
+    bronze: { probability: 1, percentage: [100, 90], value: [3, 5] },
+    silver: { probability: 0.8, percentage: [100, 80], value: [4, 8] },
+    gold: { probability: 0.55, percentage: [90, 70], value: [6, 10] },
+    platinum: { probability: 0.20, percentage: [75, 40], value: [10, 15] },
+    diamond: { probability: 0.05, percentage: [60, 5], value: [18, 25] },
+  };
+
+  if (i === 0) {
+   ticketList.push({ type: 'basic', per: 100, value: Phaser.Math.Between(2, 3) });
+  } else {
+    Object.entries(list).forEach(([key, v]) => {
+      if (Math.random() < v.probability) {
+        let per = Phaser.Math.Between(v.percentage[0], v.percentage[1])
+        let value = Phaser.Math.Between(v.value[0], v.value[1])
+        ticketList.push({ type: key, per, value });
+      }
+    });
+  }
+
+
+  const randomIndex = Math.floor(Math.random() * ticketList.length);
+  const selectedTicket = ticketList[randomIndex];
+  console.log('Selected ticket:', selectedTicket);
+  return selectedTicket;
+
 }
 
 
