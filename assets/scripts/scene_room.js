@@ -28,23 +28,27 @@ export function spawnClient(scene) {
   let tempclient = scene.add.sprite(0 * scene.TILE_SIZE + 16, 21 * scene.TILE_SIZE + 16 / 2, 'npc1')
   tempclient.spriteKey = 'npc1'
   tempclient.pauseTimer = false
+  tempclient._timerRunning = false
   tempclient.setInteractive()
   tempclient.on('pointerdown', (pointer) => {
     let tileX = Math.floor(scene.player.x / scene.TILE_SIZE)
     let tileY = Math.floor((scene.player.y + scene.player.height / 2) / scene.TILE_SIZE) - 1
     let inRange = scene.mapData[tileY][tileX] === 6
     if (!inRange || scene.player.activePath || tempclient.activePath) return
-    tempclient.pauseTimer = true
+    if (!tempclient.pauseTimer) {
+      tempclient.pauseTimer = true
+    }
     showTickets(scene)
   });
   scene.time.delayedCall(1, () => {
     gameSystem.entityPath(scene, tempclient, 21, 4, 'up')
-    clientTime(scene, tempclient, (60 * 3) * 1000)
+    clientTime(scene, tempclient, 60 * 1000);
   })
   scene.clients.push(tempclient)
 }
 
 export function showTickets(scene) {
+  scene.currentTicket = null
   scene.player.pauseMovement = true
   if (scene.tickets) {
     scene.tickets.forEach(t => {
@@ -61,24 +65,21 @@ export function showTickets(scene) {
 }
 
 function generateTicket(scene, ticketCount, i) {
-  let Colors = ['#DC143C','#cd7f32', '#c0c0c0', '#ffd700', '#f1e3ff', '#b9f2ff']
+  let Colors = ['#DC143C', '#cd7f32', '#c0c0c0', '#ffd700', '#f1e3ff', '#b9f2ff']
   const ticketSpacing = 55;
   const totalHeight = (ticketCount - 1) * ticketSpacing;
   const centerX = scene.cameras.main.centerX;
   const centerY = scene.cameras.main.centerY;
-  //let ID = Phaser.Math.Between(0, 4)
   let ticketID = randomTicketType(scene, i)
-  
   let types = ["basic", "bronze", "silver", "gold", "platinum", "diamond"]
   let fontS
   if (SaveGame.loadGameValue('language') === 'kor') {
-    fontS = 13
+    fontS = 14
   } else {
     fontS = 12
   }
   const offsetY = -totalHeight / 2 + i * ticketSpacing;
   const ticketBase = scene.add.sprite(0, 0, 'tickets', types.indexOf(ticketID.type))
-    .setInteractive();
   const ticketTitle = scene.add.text(0, 0, `${lang.Text('concert')}`, {
     fontFamily: 'DefaultFont',
     fontSize: `${fontS}px`,
@@ -100,12 +101,10 @@ function generateTicket(scene, ticketCount, i) {
   })
   ticketType.setPosition(0, -3)
   const probability = ticketID.per
-  const procColors = ['#FF0000', '#FF8C00', '#FFFF00', '#ADFF2F', '#6495ED'];
-  const thresholds = [25, 50, 75, 99];
-
+  const procColors = ['#FF0000', '#FF8C00', '#FFFF00', '#00FF00', '#6495ED'];
+  const thresholds = [25, 49, 75, 99];
   const colorIndex = thresholds.filter(t => probability > t).length;
   const color = procColors[colorIndex];
-
   const procText = scene.add.text(0, 0, `${probability}%`, {
     fontFamily: 'DefaultFont',
     fontSize: '16px',
@@ -115,18 +114,32 @@ function generateTicket(scene, ticketCount, i) {
     padding: { top: 8, bottom: 4 },
     align: 'center'
   });
-
   procText.setOrigin(0.5, 0.5);
-  procText.setPosition(98, -3); // Adjust these to match your circle's exact center
-
-  const ticketContainer = scene.add.container(-100, centerY + offsetY, [ticketBase, ticketTitle, ticketType, procText])
-    .setDepth(5000)
+  procText.setPosition(98, -3);
+  const ticketValue = scene.add.text(0, 0, `$${ticketID.value}`, {
+    fontFamily: 'DefaultFont',
+    fontSize: `16px`,
+    stroke: '#3a3a50',
+    strokeThickness: 4,
+    color: '#9ACD32',
+    padding: { top: 8, bottom: 4 },
+    align: 'right'
+  })
+  ticketValue.setPosition(-123, -8)
+  const ticketContainer = scene.add.container(-100, centerY + offsetY, [ticketBase, ticketTitle, ticketType, procText, ticketValue])
+    .setDepth(5000);
+  scene.ticketsPaused = false
+  ticketContainer.enabled = true
+  ticketContainer.setSize(ticketBase.width, ticketBase.height);
   scene.tweens.add({
     targets: ticketContainer,
     x: centerX,
     duration: 800,
     ease: 'Back.Out',
     onComplete: () => {
+      if (ticketContainer && ticketContainer.active) {
+        ticketContainer.setInteractive();
+      }
       scene.tweens.add({
         targets: ticketContainer,
         y: ticketContainer.y - 3,
@@ -137,6 +150,136 @@ function generateTicket(scene, ticketCount, i) {
       });
     }
   });
+  ticketContainer.on('pointerdown', (pointer) => {
+    if (scene.ticketsPaused || !ticketContainer.enabled) return;
+    audio.playSound('systemClick', scene);
+    scene.ticketsPaused = true;
+    const prevTicket = scene.currentTicket;
+    if (prevTicket && prevTicket === ticketContainer) {
+      ticketContainer.enabled = false;
+      scene.tweens.add({
+        targets: ticketContainer,
+        x: ticketContainer.x - 20,
+        duration: 300,
+        ease: 'Back.Out',
+        onComplete: () => {
+          ticketContainer.enabled = true;
+        }
+      });
+      if (scene.ticketConfirmation) {
+        const toDestroy = scene.ticketConfirmation;
+        const destroyX = toDestroy.x;
+        scene.tweens.add({
+          targets: toDestroy,
+          x: destroyX + 40,
+          duration: 300,
+          ease: 'Back.Out',
+          onComplete: () => {
+            if (scene.ticketConfirmation === toDestroy) {
+              toDestroy.destroy();
+              scene.ticketConfirmation = null;
+            }
+          }
+        });
+      }
+      scene.currentTicket = null;
+      scene.ticketsPaused = false;
+      return;
+    }
+    if (prevTicket && prevTicket !== ticketContainer) {
+      prevTicket.enabled = false;
+      scene.tweens.add({
+        targets: prevTicket,
+        x: prevTicket.x - 20,
+        duration: 300,
+        ease: 'Back.Out',
+        onComplete: () => {
+          prevTicket.enabled = true;
+        }
+      });
+    }
+    if (scene.ticketConfirmation) {
+      scene.ticketConfirmation.destroy();
+      scene.ticketConfirmation = null;
+    }
+    scene.ticketConfirmation = scene.add.image(
+      ticketContainer.x - 90,
+      ticketContainer.y,
+      'confirmButton'
+    );
+    scene.ticketConfirmation
+      .setDepth(ticketContainer.depth - 1)
+      .setInteractive()
+    scene.ticketConfirmation.ID = ticketContainer
+    scene.ticketConfirmation.on('pointerdown', (pointer) => {
+      if (scene.ticketsPaused) return
+      scene.ticketsPaused = true
+      audio.playSound('systemOk', scene);
+      gameSystem.flashFill(scene.ticketConfirmation, 0xadd66f, 1, 300)
+      scene.time.delayedCall(300, () => {
+        scene.tweens.add({
+          targets: scene.ticketConfirmation,
+          alpha: 0,
+          duration: 100,
+          ease: 'Power1',
+          onComplete: () => {
+            const centerY = scene.cameras.main.centerY;
+            const offsetY = -((0) * ticketSpacing) / 2 + 0 * ticketSpacing;
+            scene.tweens.getTweensOf(ticketContainer).forEach(tween => tween.pause());
+            scene.tweens.add({
+              targets: ticketContainer,
+              y: centerY + offsetY,
+              duration: 400,
+              ease: 'Sine.easeInOut',
+              onComplete: () => {
+                scene.time.delayedCall(350, () => {
+                  ticketContainer.list.forEach(child => {
+                    gameSystem.flashFill(child, 0x00FF00, 1, 300)
+                  });
+                })
+              }
+            });
+
+            scene.tickets.forEach(t => {
+              if (t != scene.ticketConfirmation.ID) {
+                scene.tweens.add({
+                  targets: t,
+                  alpha: 0,
+                  duration: 300,
+                  ease: 'Power1'
+                });
+              }
+
+            });
+
+          }
+        });
+
+      })
+
+
+    })
+
+    scene.tweens.add({
+      targets: scene.ticketConfirmation,
+      x: scene.ticketConfirmation.x - 40,
+      duration: 300,
+      ease: 'Back.Out'
+    });
+
+    scene.currentTicket = ticketContainer;
+    scene.tweens.add({
+      targets: ticketContainer,
+      x: ticketContainer.x + 20,
+      duration: 300,
+      ease: 'Back.Out',
+      onComplete: () => {
+        scene.ticketsPaused = false;
+        ticketContainer.enabled = true;
+      }
+    });
+  });
+
   return ticketContainer
 }
 
@@ -151,7 +294,7 @@ function randomTicketType(scene, i) {
   };
 
   if (i === 0) {
-   ticketList.push({ type: 'basic', per: 100, value: Phaser.Math.Between(2, 3) });
+    ticketList.push({ type: 'basic', per: 100, value: Phaser.Math.Between(2, 3) });
   } else {
     Object.entries(list).forEach(([key, v]) => {
       if (Math.random() < v.probability) {
@@ -161,20 +304,22 @@ function randomTicketType(scene, i) {
       }
     });
   }
-
-
   const randomIndex = Math.floor(Math.random() * ticketList.length);
   const selectedTicket = ticketList[randomIndex];
-  console.log('Selected ticket:', selectedTicket);
   return selectedTicket;
-
 }
 
 
 export function clientTime(scene, client, duration = 2000) {
+  // Prevent multiple timers
+  if (client._timerRunning) return;
+
+  client._timerRunning = true;
+
   let elapsed = 0;
   const interval = 16;
   const totalFrames = 10;
+
   if (!client.timeOverlay) {
     client.timeOverlay = scene.add.sprite(client.x, client.y, 'clientStatus');
     client.timeOverlay.setOrigin(0.5, 1.5);
@@ -188,39 +333,44 @@ export function clientTime(scene, client, duration = 2000) {
       ease: 'Sine.easeInOut'
     });
   }
-  client.timeOverlay.setVisible(true);
-  client.timeOverlay.setFrame(0);
-  const event = scene.time.addEvent({
-    delay: interval,
-    repeat: (duration / interval) - 1,
-    callback: () => {
-      if (client.activePath || client.pauseTimer) {
 
-      } else {
+  client.timeOverlay.setVisible(true);
+  client.timeOverlay.setFrame(0);  // This is safe now because it only happens once
+
+  const timerEvent = scene.time.addEvent({
+    delay: interval,
+    loop: true,
+    callback: () => {
+      if (!(client.activePath || client.pauseTimer)) {
         elapsed += interval;
       }
+
       const progress = Phaser.Math.Clamp(elapsed / duration, 0, 1);
       const frameIndex = Math.min(Math.floor(progress * 10), totalFrames - 1);
+
       client.timeOverlay.setFrame(frameIndex);
-      client.timeOverlay.setPosition(client.x, client.y);
+      if (!client.pauseTimer) {
+        client.timeOverlay.setPosition(client.x, client.y);
+      }
+
+      if (elapsed >= duration) {
+        timerEvent.remove();
+        if (client.timeOverlay) {
+          client.timeOverlay.destroy();
+          client.timeOverlay = null;
+        }
+        client._timerRunning = false;
+
+        scene.time.delayedCall(200, () => {
+          // client.onCoolDown = false;
+        });
+      }
     },
-    callbackScope: scene,
-  });
-  scene.time.delayedCall(duration + 50, () => {
-    if (client.timeOverlay) {
-      client.timeOverlay.destroy()
-      client.timeOverlay = null
-    }
-    // if (client.type !== null) {
-    // callSpecialFunction(scene, client.type);
-    // }
-    // client.alpha = 1;
-    // flashFill(client, 0xffffff, 2, 100);
-    scene.time.delayedCall(200, () => {
-      // client.onCoolDown = false;
-    });
+    callbackScope: scene
   });
 }
+
+
 
 
 export function createCars(scene) {

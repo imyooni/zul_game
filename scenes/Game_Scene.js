@@ -46,9 +46,10 @@ export default class Game_Scene extends Phaser.Scene {
     });
 
     this.input.keyboard.on('keydown-Q', () => {
-      this.scene.manager.scenes.forEach(scene => {
-        console.log(`Scene Key: ${scene.scene.key}, Active: ${scene.scene.isActive()}, Visible: ${scene.scene.isVisible()}, Sleeping: ${scene.scene.isSleeping()}`);
-      });
+      console.log(this.tickets)
+     // this.scene.manager.scenes.forEach(scene => {
+      //  console.log(`Scene Key: ${scene.scene.key}, Active: ${scene.scene.isActive()}, Visible: ${scene.scene.isVisible()}, Sleeping: ${scene.scene.isSleeping()}`);
+     // });
     });
 
     this.input.keyboard.on('keydown-M', () => {
@@ -98,7 +99,7 @@ function createSocialButtons(scene) {
     { key: 'https://www.twitch.tv/Zuljanim', frame: 1, y: Y + spacing }
   ];
 
-  let languages = ['eng', 'kor']
+  let languages = ['eng', 'kor', 'esp']
   let currentLang = languages.indexOf(SaveGame.loadGameValue('language'))
   scene.languageIcon = scene.add.sprite(0, 0, 'languageMini')
     .setFrame(currentLang)

@@ -4,6 +4,7 @@ import * as drinks from './drinks.js';
 import * as player from './player.js';
 import * as SaveGame from './SaveGame.js';
 import * as scene_room from './scene_room.js';
+import * as lang from './lang.js';
 
 export function createRoom(scene) {
   scene.roomBack = scene.add.sprite(scene.cameras.main.centerX, scene.cameras.main.centerY, 'room_background')
@@ -366,7 +367,7 @@ export function createClock(scene) {
     .setDepth(1000)
 
   const calendar = scene.add.sprite(0, 0, 'calendar');
-  const dayText = scene.add.text(0, 7, 'Day 1', {
+  const dayText = scene.add.text(0, 7,  `${lang.Text('day')} 1`, {
     fontFamily: 'DefaultFont',
     fontSize: '18px',
     stroke: '#3a3a50',

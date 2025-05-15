@@ -13,6 +13,7 @@ export function load_audio(scene) {
     scene.load.audio('tickets', 'assets/audio/SFX/tickets.ogg');
     scene.load.audio('systemNewGame', 'assets/audio/SFX/systemNewGame.ogg');
     scene.load.audio('systemOk', 'assets/audio/SFX/systemOk.ogg');
+    scene.load.audio('systemClick', 'assets/audio/SFX/systemClick.ogg');
     scene.load.audio('systemClose', 'assets/audio/SFX/systemClose.ogg');
     scene.load.audio('systemMoney', 'assets/audio/SFX/systemMoney.ogg');
     scene.load.audio('systemSign', 'assets/audio/SFX/systemSign.ogg');
@@ -28,6 +29,7 @@ const sfxVolumes = {
     systemMoney: 0.9,
     systemNewGame: 1,
     systemOk: 1,
+    systemClick: 1,
     systemClose: 1,
     systemSign: 1,
 };

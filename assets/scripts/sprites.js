@@ -23,7 +23,7 @@ export function loadGameSprites(scene){
   scene.load.spritesheet('coffeeTable', 'assets/sprites/coffeeTable.png', {frameWidth: 34,frameHeight: 64 });
   scene.load.spritesheet('coffeeIcon', 'assets/sprites/coffeeIcon.png', {frameWidth: 40,frameHeight: 40 });
   scene.load.spritesheet('socials', 'assets/sprites/socials.png', {frameWidth: 48,frameHeight: 47 });
-  scene.load.spritesheet('languageMini', 'assets/sprites/languageMini.png', {frameWidth: 48,frameHeight: 47 });
+  scene.load.spritesheet('languageMini', 'assets/sprites/languageMini.png', {frameWidth: 48,frameHeight: 48 });
   scene.load.spritesheet('gameLogo', 'assets/sprites/gameLogo.png', {frameWidth: 240,frameHeight: 93 });
 
   scene.load.spritesheet('newPos', 'assets/sprites/newPos.png', {frameWidth: 32,frameHeight: 48 });
@@ -47,6 +47,7 @@ export function loadGameSprites(scene){
   scene.load.image('calendar', 'assets/sprites/calendar.png');
   scene.load.image('pauseIcon', 'assets/sprites/pauseIcon.png');
   scene.load.image('topUIBorder', 'assets/sprites/topUIBorder.png');
+  scene.load.image('confirmButton', 'assets/sprites/confirmButton.png');
   scene.load.spritesheet('energyFill', 'assets/sprites/energyFill.png', {frameWidth: 9, frameHeight: 90});
   
   // npcs
