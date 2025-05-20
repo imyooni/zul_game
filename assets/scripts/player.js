@@ -12,7 +12,7 @@ export function createPlayer(scene) {
   scene.player.spriteKey = 'player'
   scene.player.direction = 1 
   scene.newPos = scene.add.sprite(0, 0, 'newPos')
-  scene.newPos.setDepth(200)
+  scene.newPos.setDepth(200) //
   scene.newPos.setVisible(false)
 
   scene.roomBack.on('pointerdown', (pointer) => {

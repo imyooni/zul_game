@@ -12,7 +12,7 @@ export function createRoom(scene) {
     .setInteractive()
   scene.roomTop = scene.add.sprite(scene.cameras.main.centerX, scene.cameras.main.centerY, 'room_top')
     .setDepth(100)
-  scene.roomTopEx = scene.add.sprite((scene.cameras.main.centerX - (32 * 2)) - 1, scene.cameras.main.centerY + (32 * 2), 'room_top_ex')
+  scene.roomTopEx = scene.add.sprite((scene.cameras.main.centerX - (32 * 2)) - 2, scene.cameras.main.centerY + (32 * 2), 'room_top_ex')
     .setDepth(85)
 
   scene.tips = scene.add.sprite(7 * scene.TILE_SIZE + scene.TILE_SIZE / 2, 8 * scene.TILE_SIZE - 1 / 2, 'tips')
@@ -33,6 +33,7 @@ export function createRoom(scene) {
     scene.dayPhase = 'active'
     player.setPlayerDir(scene, 'up')
     audio.playSound('systemSign', scene);
+    setOpenClosedSignStatus(scene,'open')
     scene.isTimePaused = false
     scene.closeOpenSign.setFrame(1)
     scene.closeOpenSign.open = true
@@ -83,7 +84,65 @@ export function createPauseIcon(scene) {
 
   });
 
+  scene.openClosedSign = scene.add.sprite(0, 0, 'openClosedSign');
+  scene.openClosedText = scene.add.text(0, 0, `${lang.Text('closed')}`, {
+    fontFamily: 'DefaultFont',
+    fontSize: '14px',
+    stroke: '#3a3a50',
+    strokeThickness: 4,
+    fill: '#ffffff',
+    padding: { top: 8, bottom: 4 },
+    align: 'right'
+  })
+scene.time.delayedCall(0, () => {
+  // Set origin of both the sprite and text to top-left for clarity
+  scene.openClosedSign.setOrigin(0, 0);
+  scene.openClosedText.setOrigin(0.5,0.5); // center the text
 
+  // Create the container first with both items
+  scene.openClosedSignUI = scene.add.container(
+    scene.moneyUI.x,
+    -scene.openClosedSign.height,
+    [scene.openClosedSign, scene.openClosedText]
+  )
+  .setDepth(scene.moneyUI.depth-1)
+  .setSize(scene.openClosedSign.width, scene.openClosedSign.height);
+
+  // Now center the text *within the container*, based on sign's size
+  scene.openClosedText.setPosition(
+    scene.openClosedSign.width / 2,
+    (scene.openClosedSign.height / 2)+2
+  );
+
+  // Animate the whole container
+  scene.tweens.add({
+    targets: scene.openClosedSignUI,
+    y: 42,
+    duration: 400,
+    ease: 'Bounce.Out',
+  });
+});
+
+
+
+
+}
+
+export function setOpenClosedSignStatus(scene,status){
+  if (status === 'open') {
+  scene.openClosedSign.setFrame(1)
+  scene.openClosedText.setText(`${lang.Text('open')}`);
+  } else {
+  scene.openClosedSign.setFrame(0)
+  scene.openClosedText.setText(`${lang.Text('closed')}`);
+  }
+  scene.openClosedSignUI.y = -scene.openClosedSignUI.height
+  scene.tweens.add({
+    targets: scene.openClosedSignUI,
+    y: 42,
+    duration: 400,
+    ease: 'Bounce.Out',
+  });
 }
 
 export function updateMoneyValueAnimated(scene, newValue, duration = 1500) {

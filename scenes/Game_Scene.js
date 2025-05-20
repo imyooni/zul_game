@@ -21,6 +21,7 @@ export default class Game_Scene extends Phaser.Scene {
   create() {
     this.usedChairs = []
     this.clients = []
+    this.clientsWaiting = []
     this.gameActive = false
     this.currentClient = null
     sprites.load_animations(this);
@@ -93,7 +94,8 @@ export default class Game_Scene extends Phaser.Scene {
           scene_room.clientTime(this, client, 60 * 1000);
           client.action = 'tickets'
         } else if (client.action === 'chair') {
-          
+          scene_room.setClientMask(this,client)
+          client.setDepth(199)
         }
       }
     }

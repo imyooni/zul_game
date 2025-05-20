@@ -19,6 +19,8 @@ export function Text(key){
     platinum: ["Platinum", "플래티넘", "Platino"],
     diamond: ["Diamond", "다이아몬드", "Diamante"],
     day: ["Day", "일", "Dia"],
+    open: ["Open", "열림", "Abierto"],
+    closed: ["Closed", "닫힘", "Cerrado"],
    } 
   return list[key][languages.indexOf(SaveGame.loadGameValue('language'))] 
 } 

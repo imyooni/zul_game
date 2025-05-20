@@ -8,12 +8,14 @@ import * as lang from './lang.js';
 
 export function generateClient(scene) {
   if (scene.dayPhase != 'active') return
-  const delay = 1000 //Phaser.Math.Between(10000, 30000);
+  const delay = Phaser.Math.Between(10000, 30000);
   scene.time.addEvent({
     delay: delay,
     callback: () => {
       if (Math.random() < 0.55) {
-        spawnClient(scene);
+        if (scene.usedChairs.length < 18 && scene.clientsWaiting.length < 4) {
+          spawnClient(scene);
+        }
       } else {
         //   console.log("spawn failed")
       }
@@ -23,29 +25,44 @@ export function generateClient(scene) {
 }
 
 export function spawnClient(scene) {
-  if (scene.clients.length > 0) return
+  // if (scene.clients.length > 0) return
   audio.playSound('doorBell', scene);
   let tempclient = scene.add.sprite(0 * scene.TILE_SIZE + 16, 21 * scene.TILE_SIZE + 16 / 2, 'npc1')
   tempclient.spriteKey = 'npc1'
   tempclient.pauseTimer = false
   tempclient.action = 'spawn'
   tempclient._timerRunning = false
+  tempclient.positionData = {waiting: null, chair: null}
   tempclient.setInteractive()
   tempclient.on('pointerdown', (pointer) => {
     let tileX = Math.floor(scene.player.x / scene.TILE_SIZE)
     let tileY = Math.floor((scene.player.y + scene.player.height / 2) / scene.TILE_SIZE) - 1
     let inRange = scene.mapData[tileY][tileX] === 6
     if (!inRange || scene.player.activePath || tempclient.activePath) return
-    if (tempclient.action !== 'tickets')  return
+    if (tempclient.action !== 'tickets') return
+    if (scene.currentClient !== null) return
     tempclient.pauseTimer = true
     tempclient.action = 'ticketSelection'
     scene.currentClient = tempclient
     showTickets(scene)
   });
   scene.time.delayedCall(1, () => {
-    gameSystem.entityPath(scene, tempclient, 21, 4, 'up','waiting')
+    let randomSpace = getWaitingPosition(scene)
+    tempclient.positionData.waiting = randomSpace
+    gameSystem.entityPath(scene, tempclient, randomSpace[0], randomSpace[1], 'up', 'waiting')
   })
   scene.clients.push(tempclient)
+}
+
+export function setClientMask(scene, client) {
+  client.maskShape = scene.make.graphics({ x: 0, y: 0, add: false });
+  client.maskShape.fillRect(
+    client.x - client.width / 2,
+    client.y - client.height / 2,
+    client.width,
+    16
+  );
+  client.mask = client.maskShape.createGeometryMask();
 }
 
 export function showTickets(scene) {
@@ -61,7 +78,7 @@ export function showTickets(scene) {
   }
 }
 
-function clearTickets(scene){
+function clearTickets(scene) {
   if (scene.tickets) {
     scene.tickets.forEach(t => {
       t.destroy()
@@ -241,33 +258,33 @@ function generateTicket(scene, ticketCount, i) {
               ease: 'Sine.easeInOut',
               onComplete: () => {
                 scene.time.delayedCall(350, () => {
-                    let success = getTicketChance(scene, ticketContainer.info.per)
-                    let price = ticketContainer.info.value
-                    let color
-                    if (success) {
-                      color = 0x00FF00
-                      audio.playSound('systemSuccess',scene)
-                      let value = SaveGame.loadGameValue('money')+price
-                      gameSystem.updateMoneyValueAnimated(scene,value);
-                    } else {
-                      color = 0xFF0000
-                      audio.playSound('systemFailed',scene)
-                    }
+                  let success = getTicketChance(scene, ticketContainer.info.per)
+                  let price = ticketContainer.info.value
+                  let color
+                  if (success) {
+                    color = 0x00FF00
+                    audio.playSound('systemSuccess', scene)
+                    let value = SaveGame.loadGameValue('money') + price
+                    gameSystem.updateMoneyValueAnimated(scene, value);
+                  } else {
+                    color = 0xFF0000
+                    audio.playSound('systemFailed', scene)
+                  }
                   ticketContainer.list.forEach(child => {
-                     gameSystem.flashFill(child, color, 1, 300)
+                    gameSystem.flashFill(child, color, 1, 300)
                   });
-                   scene.time.delayedCall(450, () => {
-                      scene.tweens.add({
-                        targets: ticketContainer,
-                        alpha: 0,
-                        duration: 300,
-                        ease: 'Power1',
-                        onComplete: () => {
-                          resumePlayerMovement(scene)
-                          setClientChair(scene)
-                        }
-                      });
-                   })
+                  scene.time.delayedCall(450, () => {
+                    scene.tweens.add({
+                      targets: ticketContainer,
+                      alpha: 0,
+                      duration: 300,
+                      ease: 'Power1',
+                      onComplete: () => {
+                        resumePlayerMovement(scene)
+                        setClientChair(scene)
+                      }
+                    });
+                  })
 
                 })
               }
@@ -316,17 +333,29 @@ function generateTicket(scene, ticketCount, i) {
   return ticketContainer
 }
 
-function resumePlayerMovement(scene){
+function resumePlayerMovement(scene) {
   scene.currentTicket = null
   scene.player.pauseMovement = false
   clearTickets(scene)
 }
 
+function getWaitingPosition(scene) {
+  let spaces = [
+    [21, 2], [21, 3], [21, 4], [21, 5]
+  ];
+  let availableSpaces = spaces.filter(s => {
+    return !scene.clientsWaiting.some(used => used[0] === s[0] && used[1] === s[1]);
+  });
+  let randomSpace = availableSpaces[Math.floor(Math.random() * availableSpaces.length)];
+  scene.clientsWaiting.push(randomSpace);
+  return randomSpace
+}
+
 function setClientChair(scene) {
   let chairs = [
-    [11,1],[11,2],[11,3],[11,4],[11,5],[11,6],
-    [13,1],[13,2],[13,3],[13,4],[13,5],[13,6],
-    [15,1],[15,2],[15,3],[15,4],[15,5],[15,6]
+    [11, 1], [11, 2], [11, 3], [11, 4], [11, 5], [11, 6],
+    [13, 1], [13, 2], [13, 3], [13, 4], [13, 5], [13, 6],
+    [15, 1], [15, 2], [15, 3], [15, 4], [15, 5], [15, 6]
   ];
   let availableChairs = chairs.filter(chair => {
     return !scene.usedChairs.some(used => used[0] === chair[0] && used[1] === chair[1]);
@@ -334,15 +363,15 @@ function setClientChair(scene) {
   let randomChair = availableChairs[Math.floor(Math.random() * availableChairs.length)];
   scene.usedChairs.push(randomChair);
   scene.currentClient.pauseTimer = false
+  let waitPos = scene.currentClient.positionData.waiting
+  scene.clientsWaiting = scene.clientsWaiting.filter(item => !(item.length === waitPos.length && item.every((val, index) => val === waitPos[index])));
   gameSystem.entityPath(scene, scene.currentClient, randomChair[0], randomChair[1], 'up', 'chair')
+  scene.currentClient = null
 }
-
-
 
 function getTicketChance(scene, chance) {
   return Math.random() < (chance / 100);
 }
-
 
 function randomTicketType(scene, i) {
   let ticketList = [];
@@ -414,15 +443,19 @@ export function clientTime(scene, client, duration = 2000) {
       }
 
       if (elapsed >= duration) {
-        timerEvent.remove();
-        if (client.timeOverlay) {
-          client.timeOverlay.destroy();
-          client.timeOverlay = null;
-        }
-        client._timerRunning = false;
-        scene.time.delayedCall(200, () => {
-          // Cooldown complete
-        });
+        client.timeOverlay.setFrame(10);
+        scene.time.delayedCall(100, () => {
+          timerEvent.remove();
+          if (client.timeOverlay) {
+            client.timeOverlay.destroy();
+            client.timeOverlay = null;
+          }
+          client._timerRunning = false;
+          scene.time.delayedCall(200, () => {
+            // Cooldown complete
+          });
+        })
+
       }
     },
     callbackScope: scene

@@ -41,6 +41,7 @@ export function loadGameSprites(scene){
   scene.load.spritesheet('money', 'assets/sprites/money.png', {frameWidth: 28, frameHeight: 46});
   scene.load.spritesheet('tips', 'assets/sprites/tips.png', {frameWidth: 32, frameHeight: 76});
   scene.load.spritesheet('tickets', 'assets/sprites/tickets.png', {frameWidth: 264, frameHeight: 50});
+  scene.load.spritesheet('openClosedSign', 'assets/sprites/openClosedSign.png', {frameWidth: 74, frameHeight: 33});
 
   scene.load.image('energyBorder', 'assets/sprites/energyBorder.png');
   scene.load.image('energyBar', 'assets/sprites/energyBar.png');
