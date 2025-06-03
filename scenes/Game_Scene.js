@@ -91,17 +91,21 @@ export default class Game_Scene extends Phaser.Scene {
       for (let index = 0; index < this.clients.length; index++) {
         const client = this.clients[index];
         if (client.action === 'waiting') {
-          scene_room.clientTime(this, client, 60 * 1000);
+          scene_room.clientTime(this, client, 10 * 1000);
           client.action = 'tickets'
         } else if (client.action === 'chair') {
           scene_room.setClientMask(this,client)
           client.setDepth(199)
+         } else if (client.action === 'exitA' || client.action === 'exitB') {
+          client.action = 'deleting' 
+          client.destroy() 
         }
       }
     }
   }
 
 }
+
 
 function createSocialButtons(scene) {
   scene.socialButtons = [];

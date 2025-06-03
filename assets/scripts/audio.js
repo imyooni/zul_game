@@ -48,21 +48,24 @@ export function bgmVolumes(key)
    return list[key]
 };
 
+function isAudioPlayable(scene) {
+    return !document.hidden && scene.sound.context.state === 'running';
+}
 
 export function playSound(key, scene, isMusic = false) {
+    if (!isAudioPlayable(scene)) {
+    return null; 
+   } 
     const bgmValue = SaveGame.loadGameValue('bgmVolume') ?? 1;
     const sfxValue = SaveGame.loadGameValue('sfxVolume') ?? 1;
     const settingVolume = isMusic ? bgmValue : sfxValue;
-
     if (isMusic) {
         const baseVolume = bgmVolumes(key) ?? 1;
         const finalVolume = Phaser.Math.Clamp(baseVolume * settingVolume, 0, 1);
-
         if (scene.bgm) {
             scene.bgm.stop();
             scene.bgm.destroy();
         }
-
         scene.bgm = scene.sound.add(key, { loop: true, volume: finalVolume });
         scene.bgm.play();
         return scene.bgm;

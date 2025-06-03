@@ -8,7 +8,7 @@ import * as lang from './lang.js';
 
 export function generateClient(scene) {
   if (scene.dayPhase != 'active') return
-  const delay = Phaser.Math.Between(10000, 30000);
+  const delay = 1000//Phaser.Math.Between(7000, 10000);
   scene.time.addEvent({
     delay: delay,
     callback: () => {
@@ -25,14 +25,16 @@ export function generateClient(scene) {
 }
 
 export function spawnClient(scene) {
-  // if (scene.clients.length > 0) return
+  let yPos = [21, 22]
+  let randomY = yPos[Math.floor(Math.random() * yPos.length)];
   audio.playSound('doorBell', scene);
-  let tempclient = scene.add.sprite(0 * scene.TILE_SIZE + 16, 21 * scene.TILE_SIZE + 16 / 2, 'npc1')
+  let tempclient = scene.add.sprite(0 * scene.TILE_SIZE + 16, randomY * scene.TILE_SIZE + 16 / 2, 'npc1')
   tempclient.spriteKey = 'npc1'
   tempclient.pauseTimer = false
+  tempclient.timeOut = false
   tempclient.action = 'spawn'
   tempclient._timerRunning = false
-  tempclient.positionData = {waiting: null, chair: null}
+  tempclient.positionData = { waiting: null, chair: null }
   tempclient.setInteractive()
   tempclient.on('pointerdown', (pointer) => {
     let tileX = Math.floor(scene.player.x / scene.TILE_SIZE)
@@ -41,6 +43,7 @@ export function spawnClient(scene) {
     if (!inRange || scene.player.activePath || tempclient.activePath) return
     if (tempclient.action !== 'tickets') return
     if (scene.currentClient !== null) return
+    if (tempclient.timeOut) return
     tempclient.pauseTimer = true
     tempclient.action = 'ticketSelection'
     scene.currentClient = tempclient
@@ -55,14 +58,7 @@ export function spawnClient(scene) {
 }
 
 export function setClientMask(scene, client) {
-  client.maskShape = scene.make.graphics({ x: 0, y: 0, add: false });
-  client.maskShape.fillRect(
-    client.x - client.width / 2,
-    client.y - client.height / 2,
-    client.width,
-    16
-  );
-  client.mask = client.maskShape.createGeometryMask();
+  client.setCrop(0, 0, client.width, 16);
 }
 
 export function showTickets(scene) {
@@ -280,8 +276,26 @@ function generateTicket(scene, ticketCount, i) {
                       duration: 300,
                       ease: 'Power1',
                       onComplete: () => {
+                        if (success) {
+                          setClientChair(scene)
+                        } else {
+                          scene.currentClient.pauseTimer = false
+                          let waitPos = scene.currentClient.positionData.waiting
+                          scene.clientsWaiting = scene.clientsWaiting.filter(item => !(item.length === waitPos.length && item.every((val, index) => val === waitPos[index])));
+                          let yPos = [21, 22]
+                          let randomY = yPos[Math.floor(Math.random() * yPos.length)];
+
+                          scene.currentClient.timeOut = true
+                          scene.currentClient.timerEvent.remove();
+                            if (scene.currentClient.timeOverlay) {
+                              scene.currentClient.timeOverlay.destroy();
+                              scene.currentClient.timeOverlay = null;
+                            }
+                          scene.currentClient._timerRunning = false;
+
+                          gameSystem.entityPath(scene, scene.currentClient, randomY, 0, 'left', 'exitA')
+                        }
                         resumePlayerMovement(scene)
-                        setClientChair(scene)
                       }
                     });
                   })
@@ -363,6 +377,7 @@ function setClientChair(scene) {
   let randomChair = availableChairs[Math.floor(Math.random() * availableChairs.length)];
   scene.usedChairs.push(randomChair);
   scene.currentClient.pauseTimer = false
+  scene.currentClient.positionData.chair = randomChair
   let waitPos = scene.currentClient.positionData.waiting
   scene.clientsWaiting = scene.clientsWaiting.filter(item => !(item.length === waitPos.length && item.every((val, index) => val === waitPos[index])));
   gameSystem.entityPath(scene, scene.currentClient, randomChair[0], randomChair[1], 'up', 'chair')
@@ -408,8 +423,8 @@ export function clientTime(scene, client, duration = 2000) {
   const interval = 16;
   const totalFrames = 10;
   const yOffset = -20;
+  let hasFinished = false; // <--- One-time execution flag
 
-  // Create overlay sprite if it doesn't exist
   if (!client.timeOverlay) {
     client.timeOverlay = scene.add.sprite(client.x, client.y + yOffset, 'clientStatus');
     client.timeOverlay.setOrigin(0.5, 1);
@@ -419,8 +434,7 @@ export function clientTime(scene, client, duration = 2000) {
   }
 
   const lerpSpeed = 1;
-
-  const timerEvent = scene.time.addEvent({
+  client.timerEvent = scene.time.addEvent({
     delay: interval,
     loop: true,
     callback: () => {
@@ -432,30 +446,40 @@ export function clientTime(scene, client, duration = 2000) {
       const frameIndex = Math.min(Math.floor(progress * totalFrames), totalFrames - 1);
       client.timeOverlay.setFrame(frameIndex);
 
-      // Smooth follow client with offset
       if (!client.pauseTimer && client.timeOverlay) {
         const targetX = client.x;
         const targetY = client.y + yOffset;
-
-        // Lerp towards the target position
         client.timeOverlay.x = Phaser.Math.Linear(client.timeOverlay.x, targetX, lerpSpeed);
         client.timeOverlay.y = Phaser.Math.Linear(client.timeOverlay.y, targetY, lerpSpeed);
       }
 
-      if (elapsed >= duration) {
+      if (elapsed >= duration && !hasFinished) {
+        client.timeOut = true
+        hasFinished = true; // <--- Prevent future executions
         client.timeOverlay.setFrame(10);
         scene.time.delayedCall(100, () => {
-          timerEvent.remove();
+          client.timerEvent.remove();
           if (client.timeOverlay) {
             client.timeOverlay.destroy();
             client.timeOverlay = null;
           }
           client._timerRunning = false;
-          scene.time.delayedCall(200, () => {
-            // Cooldown complete
-          });
-        })
-
+          console.log(client.action);
+          if (client.action === 'tickets') {
+            let waitPos = client.positionData.waiting
+            scene.clientsWaiting = scene.clientsWaiting.filter(item => !(item.length === waitPos.length && item.every((val, index) => val === waitPos[index])));
+            let yPos = [21, 22]
+            let randomY = yPos[Math.floor(Math.random() * yPos.length)];
+            gameSystem.entityPath(scene, client, randomY, 0, 'left', 'exitA')
+          } else if (client.action === 'chair') {
+            client.action = 'chairExit'
+            let chairPos = client.positionData.chair
+            scene.usedChairs = scene.usedChairs.filter(item => !(item.length === chairPos.length && item.every((val, index) => val === chairPos[index])));
+            client.setCrop()
+            client.setDepth(5)
+            gameSystem.entityPath(scene, client, 6, 8, 'left', 'exitB')
+          }
+        });
       }
     },
     callbackScope: scene
